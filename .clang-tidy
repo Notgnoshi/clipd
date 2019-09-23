@@ -1,0 +1,9 @@
+---
+Checks: 'bugprone-*,cppcoreguidelines-*,clang-analyzer-*,clang-diagnostic-*,hicpp-*,misc-*,modernize-*,mpi-*,performance-*,readability-*,-clang-diagnostic-pragma-once-outside-header'
+WarningsAsErrors: ''
+HeaderFilterRegex: ''
+AnalyzeTemporaryDtors: false
+FormatStyle:     file
+User:            nots
+CheckOptions:
+...
