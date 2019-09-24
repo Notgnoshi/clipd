@@ -58,7 +58,7 @@ DEP := $(OBJ:%.o=%.d) $(TEST_OBJ:%.o=%.d) $(BUILD_DIR)/$(MAIN_ENTRY_POINT:%.o=%.
 CXX := clang++
 LINK := clang++
 
-LINKFLAGS += -L$(INSTALL_LIB_DIR) -lm
+LINKFLAGS += -L$(INSTALL_LIB_DIR) -lm -pthread
 CXXFLAGS += $(INCLUDE_FLAGS) $(WARNING_FLAGS) -O3 -std=c++17 -x c++
 
 .DEFAULT_GOAL := all
