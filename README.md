@@ -11,6 +11,7 @@ Other non-vendored dependencies are
 
 * doxygen
 * graphviz
+* autoconf, libtool
 * clang, clang-format, and clang-tidy
 
 ## Documentation

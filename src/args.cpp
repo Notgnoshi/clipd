@@ -2,27 +2,22 @@
 
 #include <clipp.h>
 
+#include <cstdlib>
 #include <iostream>
 #include <string>
 
-namespace Boilerplate
+namespace Clipd
 {
-std::optional<CommandlineArgs_t> ParseArgs( int argc, const char** argv )
+CommandlineArgs_t ParseArgs( int argc, const char** argv )
 {
-    static const std::string description = "\tA boilerplate application.";
+    static const std::string description = "\tPeer-to-peer X11 clipboard synchronization.";
     CommandlineArgs_t args;
 
-    long double x = 0, y = 0;
-    bool help;
-
     //! @see https://github.com/muellan/clipp for details.
-    auto cli =
-        ( clipp::option( "-h", "--help" ).set( help ).doc( "Show this help page." ),
-          clipp::option( "-v", "--verbose" )
-              .set( args.verbose )
-              .doc( "Increase output verbosity." ),
-          clipp::option( "-x" ) & clipp::value( "x", x ).doc( "The rectangular x coordinate." ),
-          clipp::option( "-y" ) & clipp::value( "y", y ).doc( "The rectangular y coordinate." ) );
+    auto cli = ( clipp::option( "-h", "--help" ).set( args.help ).doc( "Show this help page." ),
+                 clipp::option( "-v", "--verbose" )
+                     .set( args.verbose )
+                     .doc( "Increase output verbosity." ) );
 
     auto display_help = [&]() {
         std::cout
@@ -30,16 +25,17 @@ std::optional<CommandlineArgs_t> ParseArgs( int argc, const char** argv )
     };
 
     // The clipp parser doesn't like const, so pretend it's not.
-    if( !clipp::parse( argc, const_cast<char**>( argv ), cli ) || help )
+    if( !clipp::parse( argc, const_cast<char**>( argv ), cli ) )
     {
         display_help();
-        return std::nullopt;
+        std::exit( 1 );
     }
-    else
+    else if( args.help )
     {
-        args.value = Math::Complex( x, y );
+        display_help();
+        std::exit( 0 );
     }
 
     return args;
 }
-} // namespace Boilerplate
+} // namespace Clipd

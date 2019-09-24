@@ -1,25 +1,26 @@
 #pragma once
 
-#include "math/complex.h"
-
-#include <optional>
-
-namespace Boilerplate
+namespace Clipd
 {
 struct CommandlineArgs_t
 {
     bool verbose = false; //!< Whether to use verbose output
-    Math::Complex value;  //!< value passed from commandline
+    bool help = false;    //!< Whether user requested the help option.
 };
 
 /**
- * @brief Parse server commandline arguments.
+ * @brief Parse application commandline arguments.
+ *
+ * @details This function will exit the program in two cases
+ * 1. The user passed --help, in which case the help page will be displayed, and the program will
+ *    exit with a zero exit status.
+ * 2. The parser failed to parse the given arguments, in which case the help page will be displayed,
+ *    and the program will exit with a non-zero status.
  *
  * @param argc The number of commandline arguments.
  * @param argv An array of commandline arguments.
- * @return A CommandlineArgs_t struct if the arguments parsed and --help was not passed. An empty
- * std::optional otherwise
+ * @return A CommandlineArgs_t struct if the arguments were successfully parsed.
  */
-std::optional<CommandlineArgs_t> ParseArgs( int argc, const char** argv );
+CommandlineArgs_t ParseArgs( int argc, const char** argv );
 
-} // namespace Boilerplate
+} // namespace Clipd
