@@ -6,6 +6,7 @@ struct CommandlineArgs_t
 {
     bool verbose = false; //!< Whether to use verbose output
     bool help = false;    //!< Whether user requested the help option.
+    bool clipd = false;   //!< Whether to listen to changes in the X11 clipboard.
 };
 
 /**

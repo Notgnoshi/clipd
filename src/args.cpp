@@ -17,7 +17,10 @@ CommandlineArgs_t ParseArgs( int argc, const char** argv )
     auto cli = ( clipp::option( "-h", "--help" ).set( args.help ).doc( "Show this help page." ),
                  clipp::option( "-v", "--verbose" )
                      .set( args.verbose )
-                     .doc( "Increase output verbosity." ) );
+                     .doc( "Increase output verbosity." ),
+                 clipp::option( "-c", "--clipd" )
+                     .set( args.clipd )
+                     .doc( "Listen for clipboard changes in the background." ) );
 
     auto display_help = [&]() {
         std::cout
