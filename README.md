@@ -1,21 +1,26 @@
-# Boilerplate C++ Project
+# Clipd
 
-This branch is a boilerplate C++ project that includes documentation, unit tests, and an example makefile.
+Peer-to-peer X11 clipboard synchronization.
 
 ## Dependencies
 
-* `doxygen`
-* `graphviz`
-* `clang-format` and `clang-tidy`
+Many of the dependencies are included as project submodules in `depends/`.
+The dependencies can be manually build by running `make depends`, or automatically as a part of building the main application with just `make`.
+
+Other non-vendored dependencies are
+
+* doxygen
+* graphviz
+* clang, clang-format, and clang-tidy
 
 ## Documentation
 
-* Run `make docs` to generate doxygen documentation. HTML documentation can be found in `build/html/index.html`.
-* Build and run unit tests with `make runtests`.
-* Run code formatter with `make format`. The `clang-format` configuration may be found in `.clang-format`.
-* Run code linter with `make lint`. The configuration for the linter may be found in `.clang-tidy`.
+Run `make docs` and `make viewdocs` to build and open the developer documentation.
 
-## TODO
+## Usage
 
-* Profiling and benchmarking targets.
-* Avoid deleting the documentation when running `make clean`?
+@todo Add commandline usage.
+
+## Network Architecture
+
+@todo Expound on the peer-to-peer discovery and message transmission.
