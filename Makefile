@@ -33,9 +33,12 @@ ZMQPP_BUILD_DIR := $(BUILD_DIR)/$(DEPS_DIR)/zmqpp
 # NOTE: Do *not* specify multiple objects here, even if you want shared and static builds.
 ZMQPP_LIBS := $(INSTALL_LIB_DIR)/libzmqpp.a
 
-INCLUDE_FLAGS := -I$(INCLUDE_DIR) -I$(INSTALL_INCLUDE_DIR) -I$(DEPS_DIR)/clipp/include -I$(DEPS_DIR)/cppitertools -I$(DEPS_DIR)/GSL/include
+CLIP_BUILD_DIR := $(BUILD_DIR)/$(DEPS_DIR)/clip
+CLIP_LIB := $(INSTALL_LIB_DIR)/libclip.a
+
+INCLUDE_FLAGS := -I$(INCLUDE_DIR) -I$(INSTALL_INCLUDE_DIR) -I$(DEPS_DIR)/clipp/include -I$(DEPS_DIR)/cppitertools -I$(DEPS_DIR)/GSL/include -I$(DEPS_DIR)/clip
 # Prevent clang from complaining about warnings in clipp
-INCLUDE_FLAGS += -isystem $(INSTALL_INCLUDE_DIR) -isystem $(DEPS_DIR)/clipp/include -isystem $(DEPS_DIR)/cppitertools -isystem $(DEPS_DIR)/GSL/include
+INCLUDE_FLAGS += -isystem $(INSTALL_INCLUDE_DIR) -isystem $(DEPS_DIR)/clipp/include -isystem $(DEPS_DIR)/cppitertools -isystem $(DEPS_DIR)/GSL/include -isystem $(DEPS_DIR)/clip
 WARNING_FLAGS := -Wall -Wpedantic -Wextra -Werror -Wconversion -Wcast-align -Wcast-qual            \
 				 -Wctor-dtor-privacy -Wdisabled-optimization -Wold-style-cast -Wformat=2           \
 				 -Winit-self -Wmissing-declarations -Wmissing-include-dirs                         \
@@ -58,7 +61,7 @@ DEP := $(OBJ:%.o=%.d) $(TEST_OBJ:%.o=%.d) $(BUILD_DIR)/$(MAIN_ENTRY_POINT:%.o=%.
 CXX := clang++
 LINK := clang++
 
-LINKFLAGS += -L$(INSTALL_LIB_DIR) -lm -pthread
+LINKFLAGS += -L$(INSTALL_LIB_DIR) -lm -pthread -lclip
 CXXFLAGS += $(INCLUDE_FLAGS) $(WARNING_FLAGS) -O3 -std=c++17 -x c++
 
 .DEFAULT_GOAL := all
@@ -152,6 +155,7 @@ depends: libgtest
 depends: libgmock
 depends: libzmq
 depends: zmqpp
+depends: clip
 
 $(BUILD_DIR):
 	mkdir -p $@
@@ -166,6 +170,8 @@ $(GTEST_BUILD_DIR):
 $(LIBZMQ_BUILD_DIR):
 	mkdir -p $@
 $(ZMQPP_BUILD_DIR):
+	mkdir -p $@
+$(CLIP_BUILD_DIR):
 	mkdir -p $@
 
 ## Build the gtest static library
@@ -230,6 +236,23 @@ $(ZMQPP_LIBS): $(LIBZMQ_LIBS)
 
 	cd $(DEPS_DIR)/zmqpp; \
 	$(MAKE) PREFIX=$(INSTALL_DIR) CXXFLAGS=-I$(INSTALL_INCLUDE_DIR) LDFLAGS=-L$(INSTALL_LIB_DIR) install
+
+## Build the clip X11 clipboard library.
+.PHONY: clip
+clip: DEPS_DIR := $(shell readlink -f $(DEPS_DIR))
+clip: | $(CLIP_BUILD_DIR) $(INSTALL_DIR)
+clip: $(CLIP_LIB)
+
+$(CLIP_LIB):
+	@# Fix a pesky race condition where the cd starts before the mkdir finishes...
+	@mkdir -p $(CLIP_BUILD_DIR)
+	cd $(CLIP_BUILD_DIR); \
+	cmake -DCMAKE_INSTALL_PREFIX=$(INSTALL_DIR) $(DEPS_DIR)/clip
+
+	cd $(CLIP_BUILD_DIR); \
+	$(MAKE)
+
+	cp $(CLIP_BUILD_DIR)/libclip.a $(INSTALL_LIB_DIR)
 
 ## Cleaning Artifacts
 
