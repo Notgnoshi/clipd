@@ -1,4 +1,9 @@
+# Build and install artifact locations for this project and its dependencies.
 BUILD_DIR := build
+INSTALL_DIR := $(BUILD_DIR)/sysroot/usr
+INSTALL_LIB_DIR := $(INSTALL_DIR)/lib
+INSTALL_INCLUDE_DIR := $(INSTALL_DIR)/include
+
 # All source files except the main entry point(s)
 SOURCE_DIR := src
 INCLUDE_DIR := include
@@ -6,21 +11,31 @@ TEST_DIR := tests
 DEPS_DIR := depends
 MAIN_ENTRY_POINT := main.cpp
 
+# Location to build the googletest libraries.
 GTEST_BUILD_DIR := $(BUILD_DIR)/$(DEPS_DIR)/googletest
 GTEST_DIR := $(DEPS_DIR)/googletest/googletest
 GMOCK_DIR := $(DEPS_DIR)/googletest/googlemock
 
-GTEST_LIB := libgtest.a
+GTEST_LIB := $(INSTALL_LIB_DIR)/libgtest.a
 GTEST_HEADERS := $(GTEST_DIR)/include/gtest/*.h $(GTEST_DIR)/include/gtest/internal/*.h
 GTEST_SOURCES_ := $(GTEST_DIR)/src/*.cc $(GTEST_DIR)/src/*.h $(GTEST_HEADERS)
 
-GMOCK_LIB := libgmock.a
+GMOCK_LIB := $(INSTALL_LIB_DIR)/libgmock.a
 GMOCK_HEADERS := $(GMOCK_DIR)/include/gmock/*.h $(GMOCK_DIR)/include/gmock/internal/*.h $(GTEST_HEADERS)
 GMOCK_SOURCES_ := $(GMOCK_DIR)/src/*.cc $(GMOCK_HEADERS)
 
-INCLUDE_FLAGS := -I$(INCLUDE_DIR) -I$(DEPS_DIR)/clipp/include -I$(DEPS_DIR)/cppitertools -I$(DEPS_DIR)/GSL/include
+# Location to build libzmq.
+LIBZMQ_BUILD_DIR := $(BUILD_DIR)/$(DEPS_DIR)/libzmq
+# NOTE: Do *not* specify multiple objects here, even if you want shared and static builds.
+LIBZMQ_LIBS := $(INSTALL_LIB_DIR)/libzmq.a
+
+ZMQPP_BUILD_DIR := $(BUILD_DIR)/$(DEPS_DIR)/zmqpp
+# NOTE: Do *not* specify multiple objects here, even if you want shared and static builds.
+ZMQPP_LIBS := $(INSTALL_LIB_DIR)/libzmqpp.a
+
+INCLUDE_FLAGS := -I$(INCLUDE_DIR) -I$(INSTALL_INCLUDE_DIR) -I$(DEPS_DIR)/clipp/include -I$(DEPS_DIR)/cppitertools -I$(DEPS_DIR)/GSL/include
 # Prevent clang from complaining about warnings in clipp
-INCLUDE_FLAGS += -isystem $(DEPS_DIR)/clipp/include -isystem $(DEPS_DIR)/cppitertools -isystem $(DEPS_DIR)/GSL/include
+INCLUDE_FLAGS += -isystem $(INSTALL_INCLUDE_DIR) -isystem $(DEPS_DIR)/clipp/include -isystem $(DEPS_DIR)/cppitertools -isystem $(DEPS_DIR)/GSL/include
 WARNING_FLAGS := -Wall -Wpedantic -Wextra -Werror -Wconversion -Wcast-align -Wcast-qual            \
 				 -Wctor-dtor-privacy -Wdisabled-optimization -Wold-style-cast -Wformat=2           \
 				 -Winit-self -Wmissing-declarations -Wmissing-include-dirs                         \
@@ -43,7 +58,7 @@ DEP := $(OBJ:%.o=%.d) $(TEST_OBJ:%.o=%.d) $(BUILD_DIR)/$(MAIN_ENTRY_POINT:%.o=%.
 CXX := clang++
 LINK := clang++
 
-LINKFLAGS += -lm
+LINKFLAGS += -L$(INSTALL_LIB_DIR) -lm
 CXXFLAGS += $(INCLUDE_FLAGS) $(WARNING_FLAGS) -O3 -std=c++17 -x c++
 
 .DEFAULT_GOAL := all
@@ -98,12 +113,7 @@ debug: clean-apps
 debug: CXXFLAGS += -g -Og
 debug: all
 
-## Run the main application
-.PHONY: run
-run:
-	@# Depends on *either* all or debug, so don't list explicitly.
-	./$(TARGET)
-
+$(TARGET): | depends
 $(TARGET): $(OBJ) $(BUILD_DIR)/$(MAIN_ENTRY_POINT:%.cpp=%.o)
 	@mkdir -p $(@D)
 	$(LINK) $^ -o $@ $(LINKFLAGS)
@@ -129,36 +139,97 @@ check: tests
 # $^ includes all prerequisites, except for order-only prerequisites
 $(TEST_TARGET): | libgtest libgmock
 $(TEST_TARGET): CXXFLAGS += -g -w -I$(GTEST_DIR)/include -I$(GMOCK_DIR)/include
-$(TEST_TARGET): LINKFLAGS += -L$(GTEST_BUILD_DIR) -lgtest -lgmock -pthread
+$(TEST_TARGET): LINKFLAGS += -lgtest -lgmock -pthread
+# Exclude the application main entry point.
 $(TEST_TARGET): $(OBJ) $(TEST_OBJ)
-	@mkdir -p $(@D)
 	$(LINK) $^ -o $@ $(LINKFLAGS)
+
+## Building project dependencies
+
+## Build all project dependencies.
+.PHONY: depends
+depends: libgtest
+depends: libgmock
+depends: libzmq
+depends: zmqpp
+
+$(BUILD_DIR):
+	mkdir -p $@
+$(INSTALL_DIR):
+	mkdir -p $@
+$(INSTALL_LIB_DIR):
+	mkdir -p $@
+$(INSTALL_INCLUDE_DIR):
+	mkdir -p $@
+$(GTEST_BUILD_DIR):
+	mkdir -p $@
+$(LIBZMQ_BUILD_DIR):
+	mkdir -p $@
+$(ZMQPP_BUILD_DIR):
+	mkdir -p $@
 
 ## Build the gtest static library
 .PHONY: libgtest
-libgtest: $(GTEST_BUILD_DIR)/$(GTEST_LIB)
+libgtest: $(GTEST_LIB)
 
-$(GTEST_BUILD_DIR)/$(GTEST_LIB): $(GTEST_BUILD_DIR)/gtest-all.o
-	@mkdir -p $(@D)
+$(GTEST_LIB): | $(INSTALL_LIB_DIR)
+$(GTEST_LIB): $(GTEST_BUILD_DIR)/gtest-all.o
 	$(AR) $(ARFLAGS) $@ $^
 
+$(GTEST_BUILD_DIR)/gtest-all.o: | $(GTEST_BUILD_DIR)
 $(GTEST_BUILD_DIR)/gtest-all.o: CXXFLAGS += -g -w -I$(GTEST_DIR) -I$(GMOCK_DIR) -I$(GTEST_DIR)/include -I$(GMOCK_DIR)/include
 $(GTEST_BUILD_DIR)/gtest-all.o: $(GTEST_SOURCES_)
-	@mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) -c $(GTEST_DIR)/src/gtest-all.cc -o $@
 
 ## Build the gmock static library
 .PHONY: libgmock
-libgmock: $(GTEST_BUILD_DIR)/$(GMOCK_LIB)
+libgmock: $(GMOCK_LIB)
 
-$(GTEST_BUILD_DIR)/$(GMOCK_LIB): $(GTEST_BUILD_DIR)/gmock-all.o
-	@mkdir -p $(@D)
+$(GMOCK_LIB): | $(INSTALL_LIB_DIR)
+$(GMOCK_LIB): $(GTEST_BUILD_DIR)/gmock-all.o
 	$(AR) $(ARFLAGS) $@ $^
 
+$(GTEST_BUILD_DIR)/gmock-all.o: | $(GTEST_BUILD_DIR)
 $(GTEST_BUILD_DIR)/gmock-all.o: CXXFLAGS += -g -w -I$(GTEST_DIR) -I$(GMOCK_DIR) -I$(GTEST_DIR)/include -I$(GMOCK_DIR)/include
 $(GTEST_BUILD_DIR)/gmock-all.o: $(GMOCK_SOURCES_)
-	@mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) -c $(GMOCK_DIR)/src/gmock-all.cc -o $@
+
+## Build the libzmq shared and static libraries
+.PHONY: libzmq
+libzmq: DEPS_DIR := $(shell readlink -f $(DEPS_DIR))
+libzmq: LIBZMQ_BUILD_DIR := $(shell readlink -m $(LIBZMQ_BUILD_DIR))
+libzmq: INSTALL_DIR := $(shell readlink -m $(INSTALL_DIR))
+libzmq: | $(LIBZMQ_BUILD_DIR) $(INSTALL_DIR)
+libzmq: $(LIBZMQ_LIBS)
+
+# This is an inherently serial task, so why complicate it by breaking it up into separate targets?
+$(LIBZMQ_LIBS):
+	cd $(DEPS_DIR)/libzmq; \
+	./autogen.sh
+
+	cd $(LIBZMQ_BUILD_DIR); \
+	$(DEPS_DIR)/libzmq/configure --enable-shared --enable-static LDFLAGS="-lstdc++ -lm" --prefix=$(INSTALL_DIR)
+
+	cd $(LIBZMQ_BUILD_DIR); \
+	$(MAKE)
+
+	cd $(LIBZMQ_BUILD_DIR); \
+	$(MAKE) install
+
+## Build the zmqpp C++ bindings for libzmq
+.PHONY: zmqpp
+zmqpp: INSTALL_DIR := $(shell readlink -m $(INSTALL_DIR))
+zmqpp: INSTALL_INCLUDE_DIR := $(shell readlink -m $(INSTALL_INCLUDE_DIR))
+zmqpp: INSTALL_LIB_DIR := $(shell readlink -m $(INSTALL_LIB_DIR))
+zmqpp: | $(ZMQPP_BUILD_DIR) $(INSTALL_DIR)
+zmqpp: $(ZMQPP_LIBS)
+
+$(ZMQPP_LIBS): $(LIBZMQ_LIBS)
+	cd $(DEPS_DIR)/zmqpp; \
+	$(MAKE) PREFIX=$(INSTALL_DIR) CXXFLAGS=-I$(INSTALL_INCLUDE_DIR) LDFLAGS=-L$(INSTALL_LIB_DIR)
+
+	cd $(DEPS_DIR)/zmqpp; \
+	$(MAKE) PREFIX=$(INSTALL_DIR) CXXFLAGS=-I$(INSTALL_INCLUDE_DIR) LDFLAGS=-L$(INSTALL_LIB_DIR) install
 
 ## Cleaning Artifacts
 
@@ -192,7 +263,10 @@ clean-docs:
 ## Clean the dependency artifacts
 .PHONY: clean-deps
 clean-deps:
-	rm -rf $(GTEST_BUILD_DIR)/*
+	rm -rf $(BUILD_DIR)/$(DEPS_DIR)/* $(INSTALL_DIR)/*
+	rm -f $(DEPS_DIR)/libzmq/configure
+	cd $(DEPS_DIR)/zmqpp; \
+	$(MAKE) clean
 
 ## Tools
 
@@ -215,3 +289,13 @@ docs:
 .PHONY: viewdocs
 viewdocs:
 	firefox $(BUILD_DIR)/html/index.html &
+
+## Open the zmqpp documentation in Firefox
+.PHONY: viewdocs-zmqpp
+viewdocs-zmqpp:
+	firefox https://zeromq.github.io/zmqpp/ &
+
+## Show the contents of the build directory
+.PHONY: list
+list:
+	tree -C -I "libzmq" $(BUILD_DIR)
