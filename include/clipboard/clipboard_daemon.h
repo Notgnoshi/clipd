@@ -15,7 +15,7 @@ namespace Clipd::Clipboard
 class ClipboardDaemon : public Daemon
 {
 public:
-    explicit ClipboardDaemon( bool verbose ) : m_verbose( verbose ) {}
+    explicit ClipboardDaemon( bool verbose = false ) : m_verbose( verbose ) {}
 
     /**
      * @brief Register a callback to be called whenever a text update occurs.
