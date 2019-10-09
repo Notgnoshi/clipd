@@ -1,6 +1,7 @@
 #pragma once
 #include "common.h"
 #include "daemon.h"
+#include "delegate.h"
 #include "functor.h"
 
 #include <atomic>
@@ -15,7 +16,11 @@ namespace Clipd::Clipboard
 class ClipboardDaemon : public Daemon
 {
 public:
-    explicit ClipboardDaemon( bool verbose = false ) : m_verbose( verbose ) {}
+    explicit ClipboardDaemon( bool verbose = false ) : m_verbose( verbose )
+    {
+        // silence compiler error
+        (void)m_verbose;
+    }
 
     /**
      * @brief Register a callback to be called whenever a text update occurs.
@@ -41,7 +46,6 @@ private:
 
 private:
     const bool m_verbose;
-    std::mutex m_callbacks_mutex;
-    std::list<Functor<void( const std::string& )>> m_callbacks;
+    Delegate<void( const std::string& )> m_text_delegate;
 };
 } // namespace Clipd::Clipboard
