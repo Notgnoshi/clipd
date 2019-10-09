@@ -4,7 +4,7 @@
 
 namespace Clipd::Clipboard
 {
-void ClipboardDaemon::registerOnTextUpdate( const std::function<void( const std::string& )>& callback )
+void ClipboardDaemon::registerOnTextUpdate( delegate<void( const std::string& )> callback )
 {
     std::unique_lock<std::mutex> lock( m_callbacks_mutex );
 
