@@ -214,7 +214,7 @@ $(LIBZMQ_LIBS):
 	./autogen.sh
 
 	cd $(LIBZMQ_BUILD_DIR); \
-	$(DEPS_DIR)/libzmq/configure --enable-shared --enable-static LDFLAGS="-lstdc++ -lm" --prefix=$(INSTALL_DIR)
+	$(DEPS_DIR)/libzmq/configure --enable-shared --enable-static --prefix=$(INSTALL_DIR)
 
 	cd $(LIBZMQ_BUILD_DIR); \
 	$(MAKE)
@@ -224,6 +224,7 @@ $(LIBZMQ_LIBS):
 
 ## Build the zmqpp C++ bindings for libzmq
 .PHONY: zmqpp
+zmqpp: libzmq
 zmqpp: INSTALL_DIR := $(shell readlink -m $(INSTALL_DIR))
 zmqpp: INSTALL_INCLUDE_DIR := $(shell readlink -m $(INSTALL_INCLUDE_DIR))
 zmqpp: INSTALL_LIB_DIR := $(shell readlink -m $(INSTALL_LIB_DIR))
@@ -240,7 +241,7 @@ $(ZMQPP_LIBS): $(LIBZMQ_LIBS)
 ## Build the clip X11 clipboard library.
 .PHONY: clip
 clip: DEPS_DIR := $(shell readlink -f $(DEPS_DIR))
-clip: | $(CLIP_BUILD_DIR) $(INSTALL_DIR)
+clip: | $(CLIP_BUILD_DIR) $(INSTALL_LIB_DIR)
 clip: $(CLIP_LIB)
 
 $(CLIP_LIB):
@@ -321,4 +322,4 @@ viewdocs-zmqpp:
 ## Show the contents of the build directory
 .PHONY: list
 list:
-	tree -C -I "libzmq" $(BUILD_DIR)
+	tree -C -I "libzmq|clip|html|latex" $(BUILD_DIR)
