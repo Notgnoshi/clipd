@@ -7,10 +7,10 @@
 #include <utility>
 
 template <typename T>
-class delegate;
+class Functor;
 
 /**
- * @brief A fast delegate class.
+ * @brief A fast Functor class.
  *
  * @see https://codereview.stackexchange.com/questions/14730/impossibly-fast-delegate-in-c11
  *
@@ -18,56 +18,56 @@ class delegate;
  * @tparam A The variadic argument types of the wrapped functor.
  */
 template <class R, class... A>
-class delegate<R( A... )>
+class Functor<R( A... )>
 {
     using stub_ptr_type = R ( * )( void*, A&&... );
 
-    delegate( void* const o, stub_ptr_type const m ) noexcept : object_ptr_( o ), stub_ptr_( m ) {}
+    Functor( void* const o, stub_ptr_type const m ) noexcept : object_ptr_( o ), stub_ptr_( m ) {}
 
 public:
-    delegate() = default;
+    Functor() = default;
 
-    delegate( delegate const& ) = default;
+    Functor( Functor const& ) = default;
 
-    delegate( delegate&& ) = default;
+    Functor( Functor&& ) = default;
 
-    delegate( ::std::nullptr_t const ) noexcept : delegate() {}
+    Functor( ::std::nullptr_t const ) noexcept : Functor() {}
 
     template <class C, typename = typename ::std::enable_if<::std::is_class<C> {}>::type>
-    explicit delegate( C const* const o ) noexcept : object_ptr_( const_cast<C*>( o ) )
+    explicit Functor( C const* const o ) noexcept : object_ptr_( const_cast<C*>( o ) )
     {}
 
     template <class C, typename = typename ::std::enable_if<::std::is_class<C> {}>::type>
-    explicit delegate( C const& o ) noexcept : object_ptr_( const_cast<C*>( &o ) )
+    explicit Functor( C const& o ) noexcept : object_ptr_( const_cast<C*>( &o ) )
     {}
 
     template <class C>
-    delegate( C* const object_ptr, R ( C::*const method_ptr )( A... ) )
+    Functor( C* const object_ptr, R ( C::*const method_ptr )( A... ) )
     {
         *this = from( object_ptr, method_ptr );
     }
 
     template <class C>
-    delegate( C* const object_ptr, R ( C::*const method_ptr )( A... ) const )
+    Functor( C* const object_ptr, R ( C::*const method_ptr )( A... ) const )
     {
         *this = from( object_ptr, method_ptr );
     }
 
     template <class C>
-    delegate( C& object, R ( C::*const method_ptr )( A... ) )
+    Functor( C& object, R ( C::*const method_ptr )( A... ) )
     {
         *this = from( object, method_ptr );
     }
 
     template <class C>
-    delegate( C const& object, R ( C::*const method_ptr )( A... ) const )
+    Functor( C const& object, R ( C::*const method_ptr )( A... ) const )
     {
         *this = from( object, method_ptr );
     }
 
     template <typename T, typename = typename ::std::enable_if<
-                              !::std::is_same<delegate, typename ::std::decay<T>::type> {}>::type>
-    delegate( T&& f ) :
+                              !::std::is_same<Functor, typename ::std::decay<T>::type> {}>::type>
+    Functor( T&& f ) :
         store_( operator new( sizeof( typename ::std::decay<T>::type ) ),
                 functor_deleter<typename ::std::decay<T>::type> ),
         store_size_( sizeof( typename ::std::decay<T>::type ) )
@@ -83,25 +83,25 @@ public:
         deleter_ = deleter_stub<functor_type>;
     }
 
-    delegate& operator=( delegate const& ) = default;
+    Functor& operator=( Functor const& ) = default;
 
-    delegate& operator=( delegate&& ) = default;
+    Functor& operator=( Functor&& ) = default;
 
     template <class C>
-    delegate& operator=( R ( C::*const rhs )( A... ) )
+    Functor& operator=( R ( C::*const rhs )( A... ) )
     {
         return *this = from( static_cast<C*>( object_ptr_ ), rhs );
     }
 
     template <class C>
-    delegate& operator=( R ( C::*const rhs )( A... ) const )
+    Functor& operator=( R ( C::*const rhs )( A... ) const )
     {
         return *this = from( static_cast<C const*>( object_ptr_ ), rhs );
     }
 
     template <typename T, typename = typename ::std::enable_if<
-                              !::std::is_same<delegate, typename ::std::decay<T>::type> {}>::type>
-    delegate& operator=( T&& f )
+                              !::std::is_same<Functor, typename ::std::decay<T>::type> {}>::type>
+    Functor& operator=( T&& f )
     {
         using functor_type = typename ::std::decay<T>::type;
 
@@ -128,42 +128,42 @@ public:
     }
 
     template <R ( *const function_ptr )( A... )>
-    static delegate from() noexcept
+    static Functor from() noexcept
     {
         return {nullptr, function_stub<function_ptr>};
     }
 
     template <class C, R ( C::*const method_ptr )( A... )>
-    static delegate from( C* const object_ptr ) noexcept
+    static Functor from( C* const object_ptr ) noexcept
     {
         return {object_ptr, method_stub<C, method_ptr>};
     }
 
     template <class C, R ( C::*const method_ptr )( A... ) const>
-    static delegate from( C const* const object_ptr ) noexcept
+    static Functor from( C const* const object_ptr ) noexcept
     {
         return {const_cast<C*>( object_ptr ), const_method_stub<C, method_ptr>};
     }
 
     template <class C, R ( C::*const method_ptr )( A... )>
-    static delegate from( C& object ) noexcept
+    static Functor from( C& object ) noexcept
     {
         return {&object, method_stub<C, method_ptr>};
     }
 
     template <class C, R ( C::*const method_ptr )( A... ) const>
-    static delegate from( C const& object ) noexcept
+    static Functor from( C const& object ) noexcept
     {
         return {const_cast<C*>( &object ), const_method_stub<C, method_ptr>};
     }
 
     template <typename T>
-    static delegate from( T&& f )
+    static Functor from( T&& f )
     {
         return ::std::forward<T>( f );
     }
 
-    static delegate from( R ( *const function_ptr )( A... ) )
+    static Functor from( R ( *const function_ptr )( A... ) )
     {
         return function_ptr;
     }
@@ -175,25 +175,25 @@ public:
     using const_member_pair = ::std::pair<C const* const, R ( C::*const )( A... ) const>;
 
     template <class C>
-    static delegate from( C* const object_ptr, R ( C::*const method_ptr )( A... ) )
+    static Functor from( C* const object_ptr, R ( C::*const method_ptr )( A... ) )
     {
         return member_pair<C>( object_ptr, method_ptr );
     }
 
     template <class C>
-    static delegate from( C const* const object_ptr, R ( C::*const method_ptr )( A... ) const )
+    static Functor from( C const* const object_ptr, R ( C::*const method_ptr )( A... ) const )
     {
         return const_member_pair<C>( object_ptr, method_ptr );
     }
 
     template <class C>
-    static delegate from( C& object, R ( C::*const method_ptr )( A... ) )
+    static Functor from( C& object, R ( C::*const method_ptr )( A... ) )
     {
         return member_pair<C>( &object, method_ptr );
     }
 
     template <class C>
-    static delegate from( C const& object, R ( C::*const method_ptr )( A... ) const )
+    static Functor from( C const& object, R ( C::*const method_ptr )( A... ) const )
     {
         return const_member_pair<C>( &object, method_ptr );
     }
@@ -209,22 +209,22 @@ public:
         stub_ptr_ = nullptr;
     }
 
-    void swap( delegate& other ) noexcept
+    void swap( Functor& other ) noexcept
     {
         ::std::swap( *this, other );
     }
 
-    bool operator==( delegate const& rhs ) const noexcept
+    bool operator==( Functor const& rhs ) const noexcept
     {
         return ( object_ptr_ == rhs.object_ptr_ ) && ( stub_ptr_ == rhs.stub_ptr_ );
     }
 
-    bool operator!=( delegate const& rhs ) const noexcept
+    bool operator!=( Functor const& rhs ) const noexcept
     {
         return !operator==( rhs );
     }
 
-    bool operator<( delegate const& rhs ) const noexcept
+    bool operator<( Functor const& rhs ) const noexcept
     {
         return ( object_ptr_ < rhs.object_ptr_ ) ||
                ( ( object_ptr_ == rhs.object_ptr_ ) && ( stub_ptr_ < rhs.stub_ptr_ ) );
@@ -252,7 +252,7 @@ public:
     }
 
 private:
-    friend struct ::std::hash<delegate>;
+    friend struct ::std::hash<Functor>;
 
     using deleter_type = void ( * )( void* );
 
@@ -333,13 +333,13 @@ private:
 namespace std
 {
 template <typename R, typename... A>
-struct hash<::delegate<R( A... )>>
+struct hash<::Functor<R( A... )>>
 {
-    size_t operator()( ::delegate<R( A... )> const& d ) const noexcept
+    size_t operator()( ::Functor<R( A... )> const& d ) const noexcept
     {
         auto const seed( hash<void*>()( d.object_ptr_ ) );
 
-        return hash<typename ::delegate<R( A... )>::stub_ptr_type>()( d.stub_ptr_ ) + 0x9e3779b9 +
+        return hash<typename ::Functor<R( A... )>::stub_ptr_type>()( d.stub_ptr_ ) + 0x9e3779b9 +
                ( seed << 6 ) + ( seed >> 2 );
     }
 };
