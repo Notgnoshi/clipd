@@ -24,6 +24,15 @@ public:
      */
     void registerOnTextUpdate( delegate<void( const std::string& )> callback );
 
+protected:
+    /**
+     * @brief Get the current X11 clipboard contents as plaintext.
+     *
+     * @details This method is defined, and is marked as virtual to allow a unit testing
+     * framework to mock it, and provide their own values rather than querying the clipboard.
+     */
+    virtual std::string getClipboardTextContents() const;
+
 private:
     /**
      * @brief The clipboard listener event loop body.
