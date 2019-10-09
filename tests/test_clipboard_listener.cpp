@@ -24,8 +24,8 @@ TEST( ClipboardListenerTests, TestUniqueCallbackCalls )
     MockClipboardDaemon listener;
     // InSequence dummy;
 
-    listener.registerOnTextUpdate( delegate<void( const std::string& )>(
-        listener, &MockClipboardDaemon::TextUpdateCallback ) );
+    listener.registerOnTextUpdate(
+        Functor<void( const std::string& )>( listener, &MockClipboardDaemon::TextUpdateCallback ) );
 
     // Ensure that the clipboard listener will always return the constant value "v".
     ON_CALL( listener, getClipboardTextContents() ).WillByDefault( Return( "v" ) );

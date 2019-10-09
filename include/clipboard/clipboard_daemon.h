@@ -1,7 +1,7 @@
 #pragma once
 #include "common.h"
 #include "daemon.h"
-#include "delegate.h"
+#include "functor.h"
 
 #include <atomic>
 #include <functional>
@@ -22,7 +22,7 @@ public:
      *
      * @param callback The callback to call with any text updates.
      */
-    void registerOnTextUpdate( delegate<void( const std::string& )> callback );
+    void registerOnTextUpdate( Functor<void( const std::string& )> callback );
 
 protected:
     /**
@@ -42,6 +42,6 @@ private:
 private:
     const bool m_verbose;
     std::mutex m_callbacks_mutex;
-    std::list<delegate<void( const std::string& )>> m_callbacks;
+    std::list<Functor<void( const std::string& )>> m_callbacks;
 };
 } // namespace Clipd::Clipboard
