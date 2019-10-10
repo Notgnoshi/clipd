@@ -61,7 +61,7 @@ DEP := $(OBJ:%.o=%.d) $(TEST_OBJ:%.o=%.d) $(BUILD_DIR)/$(MAIN_ENTRY_POINT:%.o=%.
 CXX := clang++
 LINK := clang++
 
-LINKFLAGS += -L$(INSTALL_LIB_DIR) -lm -pthread -lclip
+LINKFLAGS += -L$(INSTALL_LIB_DIR) -lm -pthread -lclip -lX11 -lxcb
 CXXFLAGS += $(INCLUDE_FLAGS) $(WARNING_FLAGS) -O3 -std=c++17 -x c++
 
 .DEFAULT_GOAL := all
@@ -112,7 +112,6 @@ all: $(TARGET)
 
 ## Build applications with debug symbols and no optimization
 .PHONY: debug
-debug: clean-apps
 debug: CXXFLAGS += -g -Og
 debug: all
 

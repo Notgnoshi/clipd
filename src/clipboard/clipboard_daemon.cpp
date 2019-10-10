@@ -22,6 +22,20 @@ void ClipboardDaemon::loop()
 {
     std::string clipboard_contents = this->getClipboardTextContents();
 
-    m_text_delegate( clipboard_contents );
+    // This isn't a cryptographically secure hash (it's even worse than MD5), but I believe that it
+    // will suffice for now.
+    std::hash<std::string> hasher;
+    size_t hash = hasher( clipboard_contents );
+
+    if( hash != m_curr_text_hash )
+    {
+        if( m_verbose )
+        {
+            std::cout << "Received clipboard update: " << clipboard_contents << std::endl;
+        }
+
+        m_curr_text_hash = hash;
+        m_text_delegate( clipboard_contents );
+    }
 }
 } // namespace Clipd::Clipboard

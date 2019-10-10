@@ -16,11 +16,8 @@ namespace Clipd::Clipboard
 class ClipboardDaemon : public Daemon
 {
 public:
-    explicit ClipboardDaemon( bool verbose = false ) : m_verbose( verbose )
-    {
-        // silence compiler error
-        (void)m_verbose;
-    }
+    explicit ClipboardDaemon( bool verbose = false ) : m_verbose( verbose ), m_curr_text_hash( 0 )
+    {}
 
     /**
      * @brief Register a callback to be called whenever a text update occurs.
@@ -46,6 +43,7 @@ private:
 
 private:
     const bool m_verbose;
+    size_t m_curr_text_hash;
     Delegate<void( const std::string& )> m_text_delegate;
 };
 } // namespace Clipd::Clipboard
