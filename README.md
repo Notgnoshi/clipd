@@ -13,6 +13,7 @@ Other non-vendored dependencies are
 * graphviz
 * autoconf, libtool
 * clang, clang-format, and clang-tidy
+* libx11-dev
 
 ## Documentation
 
