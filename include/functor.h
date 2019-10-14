@@ -26,12 +26,13 @@ class Functor<R( A... )>
 
 public:
     Functor() = default;
+    ~Functor() = default;
 
     Functor( Functor const& ) = default;
 
-    Functor( Functor&& ) = default;
+    Functor( Functor&& ) noexcept = default;
 
-    Functor( ::std::nullptr_t const ) noexcept : Functor() {}
+    explicit Functor( ::std::nullptr_t const ) noexcept : Functor() {}
 
     template <class C, typename = typename ::std::enable_if<::std::is_class<C> {}>::type>
     explicit Functor( C const* const o ) noexcept : object_ptr_( const_cast<C*>( o ) ) // NOLINT
@@ -65,6 +66,8 @@ public:
         *this = from( object, method_ptr ); // NOLINT
     }
 
+    //! @todo clang-tidy suggests marking this as an explicit constructor, but doing so causes the
+    //! unit tests to fail to compile
     template <typename T, typename = typename ::std::enable_if<
                               !::std::is_same<Functor, typename ::std::decay<T>::type> {}>::type>
     Functor( T&& f ) :
@@ -85,7 +88,7 @@ public:
 
     Functor& operator=( Functor const& ) = default;
 
-    Functor& operator=( Functor&& ) = default;
+    Functor& operator=( Functor&& ) noexcept = default;
 
     template <class C>
     Functor& operator=( R ( C::*const rhs )( A... ) )
@@ -256,13 +259,13 @@ private:
 
     using deleter_type = void ( * )( void* );
 
-    void* object_ptr_;
+    void* object_ptr_ = nullptr;
     stub_ptr_type stub_ptr_ {};
 
-    deleter_type deleter_;
+    deleter_type deleter_ = nullptr;
 
-    ::std::shared_ptr<void> store_;
-    ::std::size_t store_size_;
+    ::std::shared_ptr<void> store_ = nullptr;
+    ::std::size_t store_size_ = 0;
 
     template <class T>
     static void functor_deleter( void* const p )

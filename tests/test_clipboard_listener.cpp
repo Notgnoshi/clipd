@@ -22,8 +22,6 @@ public:
 TEST( ClipboardListenerTests, TestUniqueCallbackCalls )
 {
     MockClipboardDaemon listener;
-    // InSequence dummy;
-
     listener.registerOnTextUpdate(
         Functor<void( const std::string& )>( listener, &MockClipboardDaemon::TextUpdateCallback ) );
 
