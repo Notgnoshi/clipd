@@ -24,11 +24,12 @@ CommandlineArgs_t ParseArgs( int argc, const char** argv )
 
     auto display_help = [&]() {
         std::cout
+            // NOLINTNEXTLINE
             << clipp::make_man_page( cli, argv[0] ).prepend_section( "DESCRIPTION", description );
     };
 
     // The clipp parser doesn't like const, so pretend it's not.
-    if( !clipp::parse( argc, const_cast<char**>( argv ), cli ) )
+    if( !clipp::parse( argc, const_cast<char**>( argv ), cli ) ) // NOLINT
     {
         display_help();
         std::exit( 1 );

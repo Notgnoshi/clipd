@@ -34,35 +34,35 @@ public:
     Functor( ::std::nullptr_t const ) noexcept : Functor() {}
 
     template <class C, typename = typename ::std::enable_if<::std::is_class<C> {}>::type>
-    explicit Functor( C const* const o ) noexcept : object_ptr_( const_cast<C*>( o ) )
+    explicit Functor( C const* const o ) noexcept : object_ptr_( const_cast<C*>( o ) ) // NOLINT
     {}
 
     template <class C, typename = typename ::std::enable_if<::std::is_class<C> {}>::type>
-    explicit Functor( C const& o ) noexcept : object_ptr_( const_cast<C*>( &o ) )
+    explicit Functor( C const& o ) noexcept : object_ptr_( const_cast<C*>( &o ) ) // NOLINT
     {}
 
     template <class C>
     Functor( C* const object_ptr, R ( C::*const method_ptr )( A... ) )
     {
-        *this = from( object_ptr, method_ptr );
+        *this = from( object_ptr, method_ptr ); // NOLINT
     }
 
     template <class C>
     Functor( C* const object_ptr, R ( C::*const method_ptr )( A... ) const )
     {
-        *this = from( object_ptr, method_ptr );
+        *this = from( object_ptr, method_ptr ); // NOLINT
     }
 
     template <class C>
     Functor( C& object, R ( C::*const method_ptr )( A... ) )
     {
-        *this = from( object, method_ptr );
+        *this = from( object, method_ptr ); // NOLINT
     }
 
     template <class C>
     Functor( C const& object, R ( C::*const method_ptr )( A... ) const )
     {
-        *this = from( object, method_ptr );
+        *this = from( object, method_ptr ); // NOLINT
     }
 
     template <typename T, typename = typename ::std::enable_if<
@@ -90,13 +90,13 @@ public:
     template <class C>
     Functor& operator=( R ( C::*const rhs )( A... ) )
     {
-        return *this = from( static_cast<C*>( object_ptr_ ), rhs );
+        return *this = from( static_cast<C*>( object_ptr_ ), rhs ); // NOLINT
     }
 
     template <class C>
     Functor& operator=( R ( C::*const rhs )( A... ) const )
     {
-        return *this = from( static_cast<C const*>( object_ptr_ ), rhs );
+        return *this = from( static_cast<C const*>( object_ptr_ ), rhs ); // NOLINT
     }
 
     template <typename T, typename = typename ::std::enable_if<
@@ -142,7 +142,7 @@ public:
     template <class C, R ( C::*const method_ptr )( A... ) const>
     static Functor from( C const* const object_ptr ) noexcept
     {
-        return {const_cast<C*>( object_ptr ), const_method_stub<C, method_ptr>};
+        return {const_cast<C*>( object_ptr ), const_method_stub<C, method_ptr>}; // NOLINT
     }
 
     template <class C, R ( C::*const method_ptr )( A... )>
@@ -154,7 +154,7 @@ public:
     template <class C, R ( C::*const method_ptr )( A... ) const>
     static Functor from( C const& object ) noexcept
     {
-        return {const_cast<C*>( &object ), const_method_stub<C, method_ptr>};
+        return {const_cast<C*>( &object ), const_method_stub<C, method_ptr>}; // NOLINT
     }
 
     template <typename T>
@@ -279,7 +279,7 @@ private:
     }
 
     template <R ( *function_ptr )( A... )>
-    static R function_stub( void* const, A&&... args )
+    static R function_stub( void* const, A&&... args ) // NOLINT
     {
         return function_ptr( ::std::forward<A>( args )... );
     }
@@ -339,8 +339,9 @@ struct hash<::Functor<R( A... )>>
     {
         auto const seed( hash<void*>()( d.object_ptr_ ) );
 
+        // NOLINTNEXTLINE
         return hash<typename ::Functor<R( A... )>::stub_ptr_type>()( d.stub_ptr_ ) + 0x9e3779b9 +
-               ( seed << 6 ) + ( seed >> 2 );
+               ( seed << 6 ) + ( seed >> 2 ); // NOLINT
     }
 };
 } // namespace std
