@@ -33,8 +33,9 @@ TEST( ClipboardListenerTests, TestUniqueCallbackCalls )
 
     listener.start();
 
-    // Give the listener thread enough time to start up and process at least a few
-    std::this_thread::sleep_for( 5ms );
+    // Give the listener thread enough time to start up and run for at least two iterations, with
+    // each iteration sleeping for 50ms.
+    std::this_thread::sleep_for( 100ms );
 
     listener.stop();
     listener.join();

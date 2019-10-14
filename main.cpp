@@ -34,7 +34,17 @@ int main( int argc, const char** argv )
     //! @todo Determine how to communicate between daemons.
     if( args.clipd )
     {
-        g_daemons.push_back( std::make_unique<Clipd::Clipboard::ClipboardDaemon>( args.verbose ) );
+        auto clipd = std::make_unique<Clipd::Clipboard::ClipboardDaemon>();
+
+        clipd->registerOnTextUpdate(
+            Functor<void( const std::string& )>( [&args]( const std::string& update ) {
+                if( args.verbose )
+                {
+                    std::cout << "clipd: clipboard update:" << std::endl;
+                    std::cout << update << std::endl;
+                }
+            } ) );
+        g_daemons.push_back( std::move( clipd ) );
     }
 
     struct sigaction sigint_handler;           // NOLINT
