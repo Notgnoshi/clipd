@@ -2,7 +2,8 @@
 
 #include <clip.h>
 
-#include <iostream>
+#include <chrono>
+#include <thread>
 
 namespace Clipd::Clipboard
 {
@@ -20,6 +21,7 @@ std::string ClipboardDaemon::getClipboardTextContents() const
 
 void ClipboardDaemon::loop()
 {
+    using namespace std::chrono_literals;
     std::string clipboard_contents = this->getClipboardTextContents();
 
     // This isn't a cryptographically secure hash (it's even worse than MD5), but I believe that it
@@ -29,13 +31,11 @@ void ClipboardDaemon::loop()
 
     if( hash != m_curr_text_hash )
     {
-        if( m_verbose )
-        {
-            std::cout << "Received clipboard update: " << clipboard_contents << std::endl;
-        }
-
         m_curr_text_hash = hash;
         m_text_delegate( clipboard_contents );
     }
+
+    // Limit how quickly we query the X11 clipboard.
+    std::this_thread::sleep_for( 50ms );
 }
 } // namespace Clipd::Clipboard
