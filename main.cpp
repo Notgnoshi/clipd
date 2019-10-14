@@ -15,7 +15,7 @@ std::list<std::unique_ptr<Clipd::Daemon>> g_daemons;
 /**
  * @brief Handle the SIGINT in a posix compliant manner to stop all of the background daemons.
  */
-void handle_SIGINT( int )
+void handle_SIGINT( int ) // NOLINT
 {
     for( const auto& daemon : g_daemons )
     {
@@ -37,8 +37,8 @@ int main( int argc, const char** argv )
         g_daemons.push_back( std::make_unique<Clipd::Clipboard::ClipboardDaemon>( args.verbose ) );
     }
 
-    struct sigaction sigint_handler;
-    sigint_handler.sa_handler = handle_SIGINT;
+    struct sigaction sigint_handler;           // NOLINT
+    sigint_handler.sa_handler = handle_SIGINT; // NOLINT
     sigemptyset( &sigint_handler.sa_mask );
     sigint_handler.sa_flags = 0;
     sigaction( SIGINT, &sigint_handler, nullptr );
