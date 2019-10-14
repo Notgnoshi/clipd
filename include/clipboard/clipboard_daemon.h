@@ -16,8 +16,7 @@ namespace Clipd::Clipboard
 class ClipboardDaemon : public Daemon
 {
 public:
-    explicit ClipboardDaemon( bool verbose = false ) : m_verbose( verbose ), m_curr_text_hash( 0 )
-    {}
+    explicit ClipboardDaemon( bool verbose = false ) : m_verbose( verbose ) {}
 
     /**
      * @brief Register a callback to be called whenever a text update occurs.
@@ -33,7 +32,7 @@ protected:
      * @details This method is defined, and is marked as virtual to allow a unit testing
      * framework to mock it, and provide their own values rather than querying the clipboard.
      */
-    virtual std::string getClipboardTextContents() const;
+    [[nodiscard]] virtual std::string getClipboardTextContents() const;
 
 private:
     /**
@@ -43,7 +42,7 @@ private:
 
 private:
     const bool m_verbose;
-    size_t m_curr_text_hash;
+    size_t m_curr_text_hash = 0;
     Delegate<void( const std::string& )> m_text_delegate;
 };
 } // namespace Clipd::Clipboard
