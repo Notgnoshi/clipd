@@ -6,6 +6,8 @@
 #include <type_traits>
 #include <utility>
 
+namespace Clipd::Utils
+{
 template <typename T>
 class Functor;
 
@@ -332,19 +334,19 @@ private:
             ::std::forward<A>( args )... );
     }
 };
+} // namespace Clipd::Utils
 
 namespace std
 {
 template <typename R, typename... A>
-struct hash<::Functor<R( A... )>>
+struct hash<Clipd::Utils::Functor<R( A... )>>
 {
-    size_t operator()( ::Functor<R( A... )> const& d ) const noexcept
+    size_t operator()( Clipd::Utils::Functor<R( A... )> const& d ) const noexcept
     {
         auto const seed( hash<void*>()( d.object_ptr_ ) );
 
-        // NOLINTNEXTLINE
-        return hash<typename ::Functor<R( A... )>::stub_ptr_type>()( d.stub_ptr_ ) + 0x9e3779b9 +
-               ( seed << 6 ) + ( seed >> 2 ); // NOLINT
+        return hash<typename Clipd::Utils::Functor<R( A... )>::stub_ptr_type>()( d.stub_ptr_ ) +
+               0x9e3779b9 + ( seed << 6 ) + ( seed >> 2 ); // NOLINT
     }
 };
 } // namespace std

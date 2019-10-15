@@ -1,12 +1,13 @@
 #pragma once
+#include "common.h"
 
-namespace Clipd
+namespace Clipd::App
 {
 struct CommandlineArgs_t
 {
-    bool verbose = false; //!< Whether to use verbose output
-    bool help = false;    //!< Whether user requested the help option.
-    bool clipd = false;   //!< Whether to listen to changes in the X11 clipboard.
+    bool verbose = true;         //!< Whether to use verbose output
+    bool help = false;           //!< Whether user requested the help option.
+    uint16_t discovery_port = 0; //!< The port to perform peer discovery on.
 };
 
 /**
@@ -24,4 +25,4 @@ struct CommandlineArgs_t
  */
 CommandlineArgs_t ParseArgs( int argc, const char** argv );
 
-} // namespace Clipd
+} // namespace Clipd::App

@@ -5,6 +5,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+using namespace Clipd::Utils;
 using namespace std::chrono_literals;
 
 using ::testing::AtLeast;

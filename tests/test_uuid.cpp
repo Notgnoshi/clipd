@@ -1,10 +1,11 @@
-#include "uuid.h"
+#include "utils/uuid.h"
 
 #include <list>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+using namespace Clipd::Utils;
 using ::testing::MatchesRegex;
 using ::testing::SizeIs;
 

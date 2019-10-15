@@ -1,8 +1,8 @@
 #pragma once
 #include "common.h"
-#include "daemon.h"
-#include "delegate.h"
-#include "functor.h"
+#include "utils/daemon.h"
+#include "utils/delegate.h"
+#include "utils/functor.h"
 
 #include <atomic>
 #include <functional>
@@ -13,7 +13,7 @@
 
 namespace Clipd::Clipboard
 {
-class ClipboardDaemon : public Daemon
+class ClipboardDaemon : public Utils::Daemon
 {
 public:
     /**
@@ -21,7 +21,7 @@ public:
      *
      * @param callback The callback to call with any text updates.
      */
-    void registerOnTextUpdate( Functor<void( const std::string& )> callback );
+    void registerOnTextUpdate( Utils::Functor<void( const std::string& )> callback );
 
 protected:
     /**
@@ -40,6 +40,6 @@ private:
 
 private:
     size_t m_curr_text_hash = 0;
-    Delegate<void( const std::string& )> m_text_delegate;
+    Utils::Delegate<void( const std::string& )> m_text_delegate;
 };
 } // namespace Clipd::Clipboard
