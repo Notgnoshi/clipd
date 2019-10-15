@@ -3,7 +3,7 @@
 #include <functional>
 #include <thread>
 
-namespace Clipd
+namespace Clipd::Utils
 {
 /**
  * @brief A base class for persistent background tasks.
@@ -27,14 +27,13 @@ public:
             return;
         }
 
+        m_is_running = true;
         m_thread = std::thread( [this]() {
             while( this->m_is_running )
             {
                 this->loop();
             }
         } );
-
-        m_is_running = true;
     }
 
     /**
@@ -66,4 +65,4 @@ private:
     std::thread m_thread;
     std::atomic<bool> m_is_running;
 };
-} // namespace Clipd
+} // namespace Clipd::Utils

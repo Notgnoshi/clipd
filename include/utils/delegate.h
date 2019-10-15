@@ -1,9 +1,11 @@
 #pragma once
-#include "functor.h"
+#include "utils/functor.h"
 
 #include <list>
 #include <mutex>
 
+namespace Clipd::Utils
+{
 template <typename T>
 class Delegate;
 
@@ -53,3 +55,4 @@ private:
     std::list<Functor<Ret_t( Args_t... )>> m_functors;
     std::mutex m_functors_mutex;
 };
+} // namespace Clipd::Utils

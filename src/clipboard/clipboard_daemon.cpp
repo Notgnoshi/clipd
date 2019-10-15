@@ -7,7 +7,7 @@
 
 namespace Clipd::Clipboard
 {
-void ClipboardDaemon::registerOnTextUpdate( Functor<void( const std::string& )> callback )
+void ClipboardDaemon::registerOnTextUpdate( Utils::Functor<void( const std::string& )> callback )
 {
     m_text_delegate.subscribe( std::move( callback ) );
 }

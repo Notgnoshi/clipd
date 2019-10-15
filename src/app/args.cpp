@@ -1,4 +1,4 @@
-#include "args.h"
+#include "app/args.h"
 
 #include <clipp.h>
 
@@ -6,7 +6,7 @@
 #include <iostream>
 #include <string>
 
-namespace Clipd
+namespace Clipd::App
 {
 CommandlineArgs_t ParseArgs( int argc, const char** argv )
 {
@@ -18,9 +18,9 @@ CommandlineArgs_t ParseArgs( int argc, const char** argv )
                  clipp::option( "-v", "--verbose" )
                      .set( args.verbose )
                      .doc( "Increase output verbosity." ),
-                 clipp::option( "-c", "--clipd" )
-                     .set( args.clipd )
-                     .doc( "Listen for clipboard changes in the background." ) );
+                 clipp::option( "-p", "--port" )
+                     .set( args.discovery_port )
+                     .doc( "The port to use for peer discovery." ) );
 
     auto display_help = [&]() {
         std::cout
@@ -42,4 +42,4 @@ CommandlineArgs_t ParseArgs( int argc, const char** argv )
 
     return args;
 }
-} // namespace Clipd
+} // namespace Clipd::App
