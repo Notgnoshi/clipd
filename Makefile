@@ -33,6 +33,12 @@ ZMQPP_BUILD_DIR := $(BUILD_DIR)/$(DEPS_DIR)/zmqpp
 # NOTE: Do *not* specify multiple objects here, even if you want shared and static builds.
 ZMQPP_LIBS := $(INSTALL_LIB_DIR)/libzmqpp.a
 
+CZMQ_BUILD_DIR := $(BUILD_DIR)/$(DEPS_DIR)/czmq
+CZMQ_LIBS := $(INSTALL_LIB_DIR)/libczmq.a
+
+ZYRE_BUILD_DIR := $(BUILD_DIR)/$(DEPS_DIR)/zyre
+ZYRE_LIBS := $(INSTALL_LIB_DIR)/libzyre.a
+
 CLIP_BUILD_DIR := $(BUILD_DIR)/$(DEPS_DIR)/clip
 CLIP_LIB := $(INSTALL_LIB_DIR)/libclip.a
 
@@ -56,12 +62,12 @@ OBJ := $(SRC:%.cpp=$(BUILD_DIR)/%.o)
 TEST_SRC := $(shell find $(TEST_DIR) -name '*.cpp')
 TEST_OBJ := $(TEST_SRC:%.cpp=$(BUILD_DIR)/%.o)
 
-DEP := $(OBJ:%.o=%.d) $(TEST_OBJ:%.o=%.d) $(BUILD_DIR)/$(MAIN_ENTRY_POINT:%.o=%.d)
+DEP := $(OBJ:%.o=%.d) $(TEST_OBJ:%.o=%.d) $(BUILD_DIR)/$(MAIN_ENTRY_POINT:%.cpp=%.d)
 
 CXX := clang++
 LINK := clang++
 
-LINKFLAGS += -L$(INSTALL_LIB_DIR) -lm -pthread -lclip -lX11 -lxcb
+LINKFLAGS += -L$(INSTALL_LIB_DIR) -lm -pthread -l:libclip.a -lX11 -lxcb -l:libzyre.a -l:libczmq.a -l:libzmqpp.a -l:libzmq.a
 CXXFLAGS += $(INCLUDE_FLAGS) $(WARNING_FLAGS) -O3 -std=c++17 -x c++
 
 .DEFAULT_GOAL := all
@@ -154,6 +160,8 @@ depends: libgtest
 depends: libgmock
 depends: libzmq
 depends: zmqpp
+depends: czmq
+depends: zyre
 depends: clip
 
 $(BUILD_DIR):
@@ -169,6 +177,10 @@ $(GTEST_BUILD_DIR):
 $(LIBZMQ_BUILD_DIR):
 	mkdir -p $@
 $(ZMQPP_BUILD_DIR):
+	mkdir -p $@
+$(CZMQ_BUILD_DIR):
+	mkdir -p $@
+$(ZYRE_BUILD_DIR):
 	mkdir -p $@
 $(CLIP_BUILD_DIR):
 	mkdir -p $@
@@ -236,6 +248,52 @@ $(ZMQPP_LIBS): $(LIBZMQ_LIBS)
 
 	cd $(DEPS_DIR)/zmqpp; \
 	$(MAKE) PREFIX=$(INSTALL_DIR) CXXFLAGS=-I$(INSTALL_INCLUDE_DIR) LDFLAGS=-L$(INSTALL_LIB_DIR) install
+
+## Build the czmq C bindings for libzmq
+.PHONY: czmq
+czmq: libzmq
+czmq: DEPS_DIR := $(shell readlink -f $(DEPS_DIR))
+czmq: INSTALL_DIR := $(shell readlink -m $(INSTALL_DIR))
+czmq: INSTALL_INCLUDE_DIR := $(shell readlink -m $(INSTALL_INCLUDE_DIR))
+czmq: INSTALL_LIB_DIR := $(shell readlink -m $(INSTALL_LIB_DIR))
+czmq: | $(CZMQ_BUILD_DIR) $(INSTALL_DIR)
+czmq: $(CZMQ_LIBS)
+
+$(CZMQ_LIBS): $(LIBZMQ_LIBS)
+	cd $(DEPS_DIR)/czmq; \
+	./autogen.sh
+
+	cd $(CZMQ_BUILD_DIR); \
+	$(DEPS_DIR)/czmq/configure --enable-shared --enable-static --prefix=$(INSTALL_DIR) CFLAGS=-I$(INSTALL_INCLUDE_DIR) LDFLAGS=-L$(INSTALL_LIB_DIR)
+
+	cd $(CZMQ_BUILD_DIR); \
+	$(MAKE)
+
+	cd $(CZMQ_BUILD_DIR); \
+	$(MAKE) install
+
+## Build the zyre library for peer-to-peer networking.
+.PHONY: zyre
+zyre: czmq
+zyre: DEPS_DIR := $(shell readlink -f $(DEPS_DIR))
+zyre: INSTALL_DIR := $(shell readlink -m $(INSTALL_DIR))
+zyre: INSTALL_INCLUDE_DIR := $(shell readlink -m $(INSTALL_INCLUDE_DIR))
+zyre: INSTALL_LIB_DIR := $(shell readlink -m $(INSTALL_LIB_DIR))
+zyre: | $(ZYRE_BUILD_DIR) $(INSTALL_DIR)
+zyre: $(ZYRE_LIBS)
+
+$(ZYRE_LIBS): $(CZMQ_LIBS) $(LIBZMQ_LIBS)
+	cd $(DEPS_DIR)/zyre; \
+	./autogen.sh
+
+	cd $(ZYRE_BUILD_DIR); \
+	$(DEPS_DIR)/zyre/configure --enable-shared --enable-static --prefix=$(INSTALL_DIR) CFLAGS=-I$(INSTALL_INCLUDE_DIR) LDFLAGS=-L$(INSTALL_LIB_DIR)
+
+	cd $(ZYRE_BUILD_DIR); \
+	$(MAKE)
+
+	cd $(ZYRE_BUILD_DIR); \
+	$(MAKE) install
 
 ## Build the clip X11 clipboard library.
 .PHONY: clip
@@ -321,4 +379,4 @@ viewdocs-zmqpp:
 ## Show the contents of the build directory
 .PHONY: list
 list:
-	tree -C -I "libzmq|clip|html|latex" $(BUILD_DIR)
+	tree -C -I "libzmq|clip|html|latex|czmq|zmqpp|sysroot" $(BUILD_DIR)
