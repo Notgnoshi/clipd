@@ -63,7 +63,7 @@ IncludeBlocks:   Regroup
 IncludeCategories:
   - Regex:           '^(<|")(gtest|gmock|isl|json)\/'
     Priority:        4
-  - Regex:           '<[[:alnum:]_]+\.h.*>'
+  - Regex:           '<[[:alnum:]_\/]+(\.h|\.hpp)>'
     Priority:        2
   - Regex:           '<[[:alnum:]_]+>'
     Priority:        3

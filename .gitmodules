@@ -18,11 +18,15 @@
 	path = depends/clip
 	url = git@github.com:dacap/clip.git
 	branch = master
-[submodule "depends/zmqpp"]
-	path = depends/zmqpp
-	url = git@github.com:zeromq/zmqpp.git
-	branch = master
 [submodule "depends/libzmq"]
 	path = depends/libzmq
 	url = git://github.com/zeromq/libzmq.git
+	branch = master
+[submodule "depends/czmq"]
+	path = depends/czmq
+	url = git@github.com:zeromq/czmq.git
+	branch = master
+[submodule "depends/zyre"]
+	path = depends/zyre
+	url = git@github.com:zeromq/zyre.git
 	branch = master
