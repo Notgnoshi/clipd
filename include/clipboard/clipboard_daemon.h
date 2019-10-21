@@ -4,12 +4,7 @@
 #include "utils/delegate.h"
 #include "utils/functor.h"
 
-#include <atomic>
-#include <functional>
-#include <list>
-#include <mutex>
 #include <string>
-#include <thread>
 
 namespace Clipd::Clipboard
 {
@@ -22,6 +17,10 @@ public:
      * @param callback The callback to call with any text updates.
      */
     void registerOnTextUpdate( Utils::Functor<void( const std::string& )> callback );
+
+    //! @todo Think about how to handle conflicts and timing issues (What happens when two peers are
+    //! running on the same host?)
+    void receiveRemoteClipboardUpdate( const std::string& update );
 
 protected:
     /**

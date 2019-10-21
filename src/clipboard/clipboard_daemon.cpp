@@ -12,6 +12,14 @@ void ClipboardDaemon::registerOnTextUpdate( Utils::Functor<void( const std::stri
     m_text_delegate.subscribe( std::move( callback ) );
 }
 
+void ClipboardDaemon::receiveRemoteClipboardUpdate( const std::string& update )
+{
+    std::hash<std::string> hasher;
+    size_t hash = hasher( update );
+    m_curr_text_hash = hash;
+    clip::set_text( update );
+}
+
 std::string ClipboardDaemon::getClipboardTextContents() const
 {
     std::string contents;

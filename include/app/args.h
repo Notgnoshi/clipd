@@ -5,7 +5,7 @@ namespace Clipd::App
 {
 struct CommandlineArgs_t
 {
-    bool verbose = true;         //!< Whether to use verbose output
+    bool verbose = false;        //!< Whether to use verbose output
     bool help = false;           //!< Whether user requested the help option.
     uint16_t discovery_port = 0; //!< The port to perform peer discovery on.
 };
