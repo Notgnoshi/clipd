@@ -29,10 +29,6 @@ LIBZMQ_BUILD_DIR := $(BUILD_DIR)/$(DEPS_DIR)/libzmq
 # NOTE: Do *not* specify multiple objects here, even if you want shared and static builds.
 LIBZMQ_LIBS := $(INSTALL_LIB_DIR)/libzmq.a
 
-ZMQPP_BUILD_DIR := $(BUILD_DIR)/$(DEPS_DIR)/zmqpp
-# NOTE: Do *not* specify multiple objects here, even if you want shared and static builds.
-ZMQPP_LIBS := $(INSTALL_LIB_DIR)/libzmqpp.a
-
 CZMQ_BUILD_DIR := $(BUILD_DIR)/$(DEPS_DIR)/czmq
 CZMQ_LIBS := $(INSTALL_LIB_DIR)/libczmq.a
 
@@ -67,7 +63,7 @@ DEP := $(OBJ:%.o=%.d) $(TEST_OBJ:%.o=%.d) $(BUILD_DIR)/$(MAIN_ENTRY_POINT:%.cpp=
 CXX := clang++
 LINK := clang++
 
-LINKFLAGS += -L$(INSTALL_LIB_DIR) -lm -pthread -l:libclip.a -lX11 -lxcb -l:libzyre.a -l:libczmq.a -l:libzmqpp.a -l:libzmq.a
+LINKFLAGS += -L$(INSTALL_LIB_DIR) -lm -pthread -lX11 -lxcb -lpng -luuid -l:libclip.a -l:libzyre.a -l:libczmq.a -l:libzmq.a
 CXXFLAGS += $(INCLUDE_FLAGS) $(WARNING_FLAGS) -O3 -std=c++17 -x c++
 
 .DEFAULT_GOAL := all
@@ -121,9 +117,10 @@ all: $(TARGET)
 debug: CXXFLAGS += -g -Og
 debug: all
 
-$(TARGET): | depends
+$(OBJ): zyre clip
+$(BUILD_DIR)/$(MAIN_ENTRY_POINT:%.cpp=%.o): zyre clip
+
 $(TARGET): $(OBJ) $(BUILD_DIR)/$(MAIN_ENTRY_POINT:%.cpp=%.o)
-	@mkdir -p $(@D)
 	$(LINK) $^ -o $@ $(LINKFLAGS)
 
 # Apparently the location of this -include is what broke it before.
@@ -144,25 +141,19 @@ tests: $(TEST_TARGET)
 check: tests
 	./$(TEST_TARGET)
 
-# $^ includes all prerequisites, except for order-only prerequisites
-$(TEST_TARGET): | libgtest libgmock
 $(TEST_TARGET): CXXFLAGS += -g -w -I$(GTEST_DIR)/include -I$(GMOCK_DIR)/include
-$(TEST_TARGET): LINKFLAGS += -lgtest -lgmock -pthread
+$(TEST_TARGET): LINKFLAGS += -lgtest -lgmock
 # Exclude the application main entry point.
 $(TEST_TARGET): $(OBJ) $(TEST_OBJ)
 	$(LINK) $^ -o $@ $(LINKFLAGS)
+
+$(TEST_OBJ): libgtest libgmock
 
 ## Building project dependencies
 
 ## Build all project dependencies.
 .PHONY: depends
-depends: libgtest
-depends: libgmock
-depends: libzmq
-depends: zmqpp
-depends: czmq
-depends: zyre
-depends: clip
+depends: zyre clip
 
 $(BUILD_DIR):
 	mkdir -p $@
@@ -175,8 +166,6 @@ $(INSTALL_INCLUDE_DIR):
 $(GTEST_BUILD_DIR):
 	mkdir -p $@
 $(LIBZMQ_BUILD_DIR):
-	mkdir -p $@
-$(ZMQPP_BUILD_DIR):
 	mkdir -p $@
 $(CZMQ_BUILD_DIR):
 	mkdir -p $@
@@ -213,14 +202,13 @@ $(GTEST_BUILD_DIR)/gmock-all.o: $(GMOCK_SOURCES_)
 
 ## Build the libzmq shared and static libraries
 .PHONY: libzmq
-libzmq: DEPS_DIR := $(shell readlink -f $(DEPS_DIR))
-libzmq: LIBZMQ_BUILD_DIR := $(shell readlink -m $(LIBZMQ_BUILD_DIR))
-libzmq: INSTALL_DIR := $(shell readlink -m $(INSTALL_DIR))
-libzmq: | $(LIBZMQ_BUILD_DIR) $(INSTALL_DIR)
 libzmq: $(LIBZMQ_LIBS)
 
 # This is an inherently serial task, so why complicate it by breaking it up into separate targets?
-$(LIBZMQ_LIBS):
+$(LIBZMQ_LIBS): DEPS_DIR := $(shell readlink -f $(DEPS_DIR))
+$(LIBZMQ_LIBS): LIBZMQ_BUILD_DIR := $(shell readlink -m $(LIBZMQ_BUILD_DIR))
+$(LIBZMQ_LIBS): INSTALL_DIR := $(shell readlink -m $(INSTALL_DIR))
+$(LIBZMQ_LIBS): | $(LIBZMQ_BUILD_DIR) $(INSTALL_DIR)
 	cd $(DEPS_DIR)/libzmq; \
 	./autogen.sh
 
@@ -233,33 +221,15 @@ $(LIBZMQ_LIBS):
 	cd $(LIBZMQ_BUILD_DIR); \
 	$(MAKE) install
 
-## Build the zmqpp C++ bindings for libzmq
-.PHONY: zmqpp
-zmqpp: libzmq
-zmqpp: INSTALL_DIR := $(shell readlink -m $(INSTALL_DIR))
-zmqpp: INSTALL_INCLUDE_DIR := $(shell readlink -m $(INSTALL_INCLUDE_DIR))
-zmqpp: INSTALL_LIB_DIR := $(shell readlink -m $(INSTALL_LIB_DIR))
-zmqpp: | $(ZMQPP_BUILD_DIR) $(INSTALL_DIR)
-zmqpp: $(ZMQPP_LIBS)
-
-$(ZMQPP_LIBS): $(LIBZMQ_LIBS)
-	cd $(DEPS_DIR)/zmqpp; \
-	$(MAKE) PREFIX=$(INSTALL_DIR) CXXFLAGS=-I$(INSTALL_INCLUDE_DIR) LDFLAGS=-L$(INSTALL_LIB_DIR)
-
-	cd $(DEPS_DIR)/zmqpp; \
-	$(MAKE) PREFIX=$(INSTALL_DIR) CXXFLAGS=-I$(INSTALL_INCLUDE_DIR) LDFLAGS=-L$(INSTALL_LIB_DIR) install
-
 ## Build the czmq C bindings for libzmq
 .PHONY: czmq
-czmq: libzmq
-czmq: DEPS_DIR := $(shell readlink -f $(DEPS_DIR))
-czmq: INSTALL_DIR := $(shell readlink -m $(INSTALL_DIR))
-czmq: INSTALL_INCLUDE_DIR := $(shell readlink -m $(INSTALL_INCLUDE_DIR))
-czmq: INSTALL_LIB_DIR := $(shell readlink -m $(INSTALL_LIB_DIR))
-czmq: | $(CZMQ_BUILD_DIR) $(INSTALL_DIR)
 czmq: $(CZMQ_LIBS)
 
-$(CZMQ_LIBS): $(LIBZMQ_LIBS)
+$(CZMQ_LIBS): DEPS_DIR := $(shell readlink -f $(DEPS_DIR))
+$(CZMQ_LIBS): INSTALL_DIR := $(shell readlink -m $(INSTALL_DIR))
+$(CZMQ_LIBS): INSTALL_INCLUDE_DIR := $(shell readlink -m $(INSTALL_INCLUDE_DIR))
+$(CZMQ_LIBS): INSTALL_LIB_DIR := $(shell readlink -m $(INSTALL_LIB_DIR))
+$(CZMQ_LIBS): | $(CZMQ_BUILD_DIR) $(INSTALL_DIR) $(LIBZMQ_LIBS)
 	cd $(DEPS_DIR)/czmq; \
 	./autogen.sh
 
@@ -274,15 +244,13 @@ $(CZMQ_LIBS): $(LIBZMQ_LIBS)
 
 ## Build the zyre library for peer-to-peer networking.
 .PHONY: zyre
-zyre: czmq
-zyre: DEPS_DIR := $(shell readlink -f $(DEPS_DIR))
-zyre: INSTALL_DIR := $(shell readlink -m $(INSTALL_DIR))
-zyre: INSTALL_INCLUDE_DIR := $(shell readlink -m $(INSTALL_INCLUDE_DIR))
-zyre: INSTALL_LIB_DIR := $(shell readlink -m $(INSTALL_LIB_DIR))
-zyre: | $(ZYRE_BUILD_DIR) $(INSTALL_DIR)
 zyre: $(ZYRE_LIBS)
 
-$(ZYRE_LIBS): $(CZMQ_LIBS) $(LIBZMQ_LIBS)
+$(ZYRE_LIBS): DEPS_DIR := $(shell readlink -f $(DEPS_DIR))
+$(ZYRE_LIBS): INSTALL_DIR := $(shell readlink -m $(INSTALL_DIR))
+$(ZYRE_LIBS): INSTALL_INCLUDE_DIR := $(shell readlink -m $(INSTALL_INCLUDE_DIR))
+$(ZYRE_LIBS): INSTALL_LIB_DIR := $(shell readlink -m $(INSTALL_LIB_DIR))
+$(ZYRE_LIBS): | $(ZYRE_BUILD_DIR) $(INSTALL_DIR) $(CZMQ_LIBS)
 	cd $(DEPS_DIR)/zyre; \
 	./autogen.sh
 
@@ -297,11 +265,10 @@ $(ZYRE_LIBS): $(CZMQ_LIBS) $(LIBZMQ_LIBS)
 
 ## Build the clip X11 clipboard library.
 .PHONY: clip
-clip: DEPS_DIR := $(shell readlink -f $(DEPS_DIR))
-clip: | $(CLIP_BUILD_DIR) $(INSTALL_LIB_DIR)
 clip: $(CLIP_LIB)
 
-$(CLIP_LIB):
+$(CLIP_LIB): DEPS_DIR := $(shell readlink -f $(DEPS_DIR))
+$(CLIP_LIB): | $(CLIP_BUILD_DIR) $(INSTALL_LIB_DIR)
 	@# Fix a pesky race condition where the cd starts before the mkdir finishes...
 	@mkdir -p $(CLIP_BUILD_DIR)
 	cd $(CLIP_BUILD_DIR); \
@@ -346,8 +313,8 @@ clean-docs:
 clean-deps:
 	rm -rf $(BUILD_DIR)/$(DEPS_DIR)/* $(INSTALL_DIR)/*
 	rm -f $(DEPS_DIR)/libzmq/configure
-	cd $(DEPS_DIR)/zmqpp; \
-	$(MAKE) clean
+	rm -f $(DEPS_DIR)/czmq/configure
+	rm -f $(DEPS_DIR)/zyre/configure
 
 ## Tools
 
@@ -371,12 +338,7 @@ docs:
 viewdocs:
 	firefox $(BUILD_DIR)/html/index.html &
 
-## Open the zmqpp documentation in Firefox
-.PHONY: viewdocs-zmqpp
-viewdocs-zmqpp:
-	firefox https://zeromq.github.io/zmqpp/ &
-
 ## Show the contents of the build directory
 .PHONY: list
 list:
-	tree -C -I "libzmq|clip|html|latex|czmq|zmqpp|sysroot" $(BUILD_DIR)
+	tree -C -I "libzmq|clip|html|latex|czmq|sysroot" $(BUILD_DIR)
