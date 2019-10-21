@@ -11,16 +11,13 @@
 
 namespace Clipd::Network
 {
-
 //! @todo Discuss how Zyre implements its peer discovery and messaging.
 //! See http://hintjens.com/blog:32 and https://rfc.zeromq.org/spec:36/ZRE/
 class PeerDiscoveryDaemon : public Utils::Daemon
 {
 public:
     PeerDiscoveryDaemon( uint16_t discovery_port, bool verbose = false ) :
-        m_discovery_port( discovery_port ),
-        m_verbose( verbose ),
-        m_znode( zyre_new( nullptr ) )
+        m_discovery_port( discovery_port ), m_verbose( verbose ), m_znode( zyre_new( nullptr ) )
     {
         if( m_verbose )
         {
@@ -91,8 +88,7 @@ protected:
         Messages::MessageType type = Messages::parseMessageType( msg );
         switch( type )
         {
-            case Messages::MessageType::Enter:
-            {
+            case Messages::MessageType::Enter: {
                 //! @todo Associate a peer's UUID with a host IP.
                 //! That way, when multiple nodes are running on the same host, less bad things
                 //! happen.
@@ -100,34 +96,28 @@ protected:
                 std::cout << payload << std::endl;
                 break;
             }
-            case Messages::MessageType::Exit:
-            {
+            case Messages::MessageType::Exit: {
                 Messages::Exit payload( msg );
                 std::cout << payload << std::endl;
                 break;
             }
-            case Messages::MessageType::Evasive:
-            {
+            case Messages::MessageType::Evasive: {
                 Messages::Evasive payload( msg );
                 break;
             }
-            case Messages::MessageType::Join:
-            {
+            case Messages::MessageType::Join: {
                 Messages::Join payload( msg );
                 break;
             }
-            case Messages::MessageType::Leave:
-            {
+            case Messages::MessageType::Leave: {
                 Messages::Leave payload( msg );
                 break;
             }
-            case Messages::MessageType::Whisper:
-            {
+            case Messages::MessageType::Whisper: {
                 Messages::Whisper payload( msg );
                 break;
             }
-            case Messages::MessageType::Shout:
-            {
+            case Messages::MessageType::Shout: {
                 Messages::Shout payload( msg );
                 std::cout << payload << std::endl;
                 //! @todo Use a session token as the group name. Enable one peer to be in multiple
@@ -138,8 +128,7 @@ protected:
                 }
                 break;
             }
-            case Messages::MessageType::Unknown:
-            {
+            case Messages::MessageType::Unknown: {
                 break;
             }
         }
