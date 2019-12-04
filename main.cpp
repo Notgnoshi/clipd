@@ -1,4 +1,5 @@
 #include "app/args.h"
+#include "app/certs.h"
 #include "clipboard/clipboard_daemon.h"
 #include "common.h"
 #include "network/peer_discovery.h"
@@ -42,6 +43,12 @@ void setSignalHandler()
 int main( int argc, const char** argv )
 {
     Clipd::App::CommandlineArgs_t args = Clipd::App::ParseArgs( argc, argv );
+
+    if( args.generate_cert )
+    {
+        Clipd::App::GenerateCertificate( args.cert );
+        return 0;
+    }
 
     //! @todo Create an "Application" object (main() should be as simple and small as possible.)
     //! @note Creating an "Application" object is substantially complicated by the posix signal
