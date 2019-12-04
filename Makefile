@@ -213,7 +213,7 @@ $(LIBZMQ_LIBS): | $(LIBZMQ_BUILD_DIR) $(INSTALL_DIR)
 	./autogen.sh
 
 	cd $(LIBZMQ_BUILD_DIR); \
-	$(DEPS_DIR)/libzmq/configure --enable-shared --enable-static --prefix=$(INSTALL_DIR)
+	$(DEPS_DIR)/libzmq/configure --enable-shared --enable-static --enable-drafts --prefix=$(INSTALL_DIR)
 
 	cd $(LIBZMQ_BUILD_DIR); \
 	$(MAKE)
@@ -234,7 +234,7 @@ $(CZMQ_LIBS): | $(CZMQ_BUILD_DIR) $(INSTALL_DIR) $(LIBZMQ_LIBS)
 	./autogen.sh
 
 	cd $(CZMQ_BUILD_DIR); \
-	$(DEPS_DIR)/czmq/configure --enable-shared --enable-static --prefix=$(INSTALL_DIR) CFLAGS=-I$(INSTALL_INCLUDE_DIR) LDFLAGS=-L$(INSTALL_LIB_DIR)
+	$(DEPS_DIR)/czmq/configure --enable-shared --enable-static --enable-drafts --prefix=$(INSTALL_DIR) CFLAGS=-I$(INSTALL_INCLUDE_DIR) LDFLAGS=-L$(INSTALL_LIB_DIR)
 
 	cd $(CZMQ_BUILD_DIR); \
 	$(MAKE)
@@ -255,7 +255,7 @@ $(ZYRE_LIBS): | $(ZYRE_BUILD_DIR) $(INSTALL_DIR) $(CZMQ_LIBS)
 	./autogen.sh
 
 	cd $(ZYRE_BUILD_DIR); \
-	$(DEPS_DIR)/zyre/configure --enable-shared --enable-static --prefix=$(INSTALL_DIR) CFLAGS=-I$(INSTALL_INCLUDE_DIR) LDFLAGS=-L$(INSTALL_LIB_DIR)
+	$(DEPS_DIR)/zyre/configure --enable-shared --enable-static --enable-drafts --prefix=$(INSTALL_DIR) CFLAGS=-I$(INSTALL_INCLUDE_DIR) LDFLAGS=-L$(INSTALL_LIB_DIR)
 
 	cd $(ZYRE_BUILD_DIR); \
 	$(MAKE)
