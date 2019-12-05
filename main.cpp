@@ -44,6 +44,8 @@ int main( int argc, const char** argv )
     Clipd::App::CommandlineArgs_t args = Clipd::App::ParseArgs( argc, argv );
 
     //! @todo Create an "Application" object (main() should be as simple and small as possible.)
+    //! @note Creating an "Application" object is substantially complicated by the posix signal
+    //! handling.
     auto clipd = std::make_unique<Clipd::Clipboard::ClipboardDaemon>();
     auto discoveryd =
         std::make_unique<Clipd::Network::PeerDiscoveryDaemon>( args.discovery_port, args.verbose );
