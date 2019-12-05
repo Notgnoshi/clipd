@@ -11,6 +11,7 @@ namespace Clipd::App
 CommandlineArgs_t ParseArgs( int argc, const char** argv )
 {
     static const std::string description = "\tPeer-to-peer X11 clipboard synchronization.";
+    std::string cert_path = "";
     CommandlineArgs_t args;
 
     //! @see https://github.com/muellan/clipp for details.
@@ -20,7 +21,13 @@ CommandlineArgs_t ParseArgs( int argc, const char** argv )
                      .doc( "Increase output verbosity." ),
                  clipp::option( "-p", "--port" )
                      .set( args.discovery_port )
-                     .doc( "The port to use for peer discovery." ) );
+                     .doc( "The port to use for peer discovery." ),
+                 ( clipp::option( "-e", "--encrypt" ).set( args.encrypt_traffic ) &
+                   clipp::value( "certificate", cert_path ) ) %
+                     "Encrypt traffic using the given certificate.",
+                 ( clipp::option( "-g", "--generate" ).set( args.generate_certificate ) &
+                   clipp::value( "certificate", cert_path ) ) %
+                     "Generate a certificate." );
 
     auto display_help = [&]() {
         std::cout
@@ -34,10 +41,33 @@ CommandlineArgs_t ParseArgs( int argc, const char** argv )
         display_help();
         std::exit( 1 );
     }
-    else if( args.help )
+    // Clipp doesn't seem to play nicely with std::filesystem::path.
+    args.certificate = cert_path;
+
+    if( args.help )
     {
         display_help();
         std::exit( 0 );
+    }
+
+    if( args.encrypt_traffic )
+    {
+        if( !fs::exists( args.certificate ) )
+        {
+            std::cout << "The provided cert '" << args.certificate << "' does not exist."
+                      << std::endl;
+            std::exit( 1 );
+        }
+
+        fs::path secret = args.certificate;
+        secret += "_secret";
+
+        if( !fs::exists( secret ) )
+        {
+            std::cout << "The provided public key does not have a corresponding '" << secret
+                      << "' secret key." << std::endl;
+            std::exit( 1 );
+        }
     }
 
     return args;

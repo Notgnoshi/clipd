@@ -63,7 +63,7 @@ DEP := $(OBJ:%.o=%.d) $(TEST_OBJ:%.o=%.d) $(BUILD_DIR)/$(MAIN_ENTRY_POINT:%.cpp=
 CXX := clang++
 LINK := clang++
 
-LINKFLAGS += -L$(INSTALL_LIB_DIR) -lm -pthread -lX11 -lxcb -lpng -luuid -l:libclip.a -l:libzyre.a -l:libczmq.a -l:libzmq.a
+LINKFLAGS += -L$(INSTALL_LIB_DIR) -lm -pthread -lX11 -lxcb -lpng -luuid -l:libclip.a -l:libzyre.a -l:libczmq.a -l:libzmq.a -lstdc++fs
 CXXFLAGS += $(INCLUDE_FLAGS) $(WARNING_FLAGS) -O3 -std=c++17 -x c++
 
 .DEFAULT_GOAL := all
@@ -114,7 +114,7 @@ all: $(TARGET)
 
 ## Build applications with debug symbols and no optimization
 .PHONY: debug
-debug: CXXFLAGS += -g -Og
+debug: CXXFLAGS += -ggdb3 -O0
 debug: all
 
 $(OBJ): zyre clip
