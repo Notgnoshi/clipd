@@ -5,6 +5,8 @@
 #include "utils/delegate.h"
 #include "utils/functor.h"
 
+#include <czmq.h>
+#include <zcert.h>
 #include <zyre.h>
 
 #include <iostream>
@@ -16,8 +18,11 @@ namespace Clipd::Network
 class PeerDiscoveryDaemon : public Utils::Daemon
 {
 public:
-    PeerDiscoveryDaemon( uint16_t discovery_port, bool verbose = false ) :
-        m_discovery_port( discovery_port ), m_verbose( verbose ), m_znode( zyre_new( nullptr ) )
+    PeerDiscoveryDaemon( uint16_t discovery_port, zcert_t* certificate, bool verbose = false ) :
+        m_discovery_port( discovery_port ),
+        m_verbose( verbose ),
+        m_zcert( certificate ),
+        m_znode( zyre_new( nullptr ) )
     {
         if( m_verbose )
         {
@@ -27,6 +32,14 @@ public:
         if( m_discovery_port != 0 )
         {
             zyre_set_port( m_znode, m_discovery_port );
+        }
+        if( m_zcert )
+        {
+            if( m_verbose )
+            {
+                std::cout << "Setting zcert" << std::endl;
+            }
+            zyre_set_zcert( m_znode, m_zcert );
         }
 
         zyre_join( m_znode, "GLOBAL" );
@@ -62,6 +75,7 @@ public:
     {
         Utils::Daemon::stop();
 
+        zcert_destroy( &m_zcert );
         zyre_stop( m_znode );
         zyre_destroy( &m_znode );
         m_znode = nullptr;
@@ -137,6 +151,7 @@ protected:
 private:
     uint16_t m_discovery_port;
     bool m_verbose;
+    zcert_t* m_zcert;
     zyre_t* m_znode;
 
     Utils::Delegate<void( const std::string& )> m_remote_update_delegate;

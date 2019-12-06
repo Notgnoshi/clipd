@@ -1,5 +1,8 @@
 #pragma once
 
+#include <czmq.h>
+#include <zcert.h>
+
 // For some reason the standard feature test macros aren't defined?
 // #if defined(__cpp_lib_filesystem)
 #if __has_include( <filesystem>)
@@ -16,4 +19,5 @@ namespace fs = ::std::experimental::filesystem;
 namespace Clipd::App
 {
 void GenerateCertificate( fs::path cert );
-}
+zcert_t* LoadCertificate( fs::path cert );
+} // namespace Clipd::App

@@ -64,7 +64,8 @@ CXX := clang++
 LINK := clang++
 
 LINKFLAGS += -L$(INSTALL_LIB_DIR) -lm -pthread -lX11 -lxcb -lpng -luuid -l:libclip.a -l:libzyre.a -l:libczmq.a -l:libzmq.a -lstdc++fs
-CXXFLAGS += $(INCLUDE_FLAGS) $(WARNING_FLAGS) -O3 -std=c++17 -x c++
+DEFINES += -DZYRE_BUILD_DRAFT_API
+CXXFLAGS += $(INCLUDE_FLAGS) $(WARNING_FLAGS) $(DEFINES) -O3 -std=c++17 -x c++
 
 .DEFAULT_GOAL := all
 

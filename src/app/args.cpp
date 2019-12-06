@@ -54,7 +54,7 @@ CommandlineArgs_t ParseArgs( int argc, const char** argv )
     {
         if( !fs::exists( args.certificate ) )
         {
-            std::cout << "The provided cert '" << args.certificate << "' does not exist."
+            std::cout << "The provided certificate '" << args.certificate << "' does not exist."
                       << std::endl;
             std::exit( 1 );
         }
