@@ -44,18 +44,24 @@ int main( int argc, const char** argv )
 {
     Clipd::App::CommandlineArgs_t args = Clipd::App::ParseArgs( argc, argv );
 
-    if( args.generate_cert )
+    if( args.generate_certificate )
     {
-        Clipd::App::GenerateCertificate( args.cert );
+        Clipd::App::GenerateCertificate( args.certificate );
         return 0;
+    }
+
+    zcert_t* zcert = nullptr;
+    if( args.encrypt_traffic )
+    {
+        zcert = Clipd::App::LoadCertificate( args.certificate );
     }
 
     //! @todo Create an "Application" object (main() should be as simple and small as possible.)
     //! @note Creating an "Application" object is substantially complicated by the posix signal
     //! handling.
     auto clipd = std::make_unique<Clipd::Clipboard::ClipboardDaemon>();
-    auto discoveryd =
-        std::make_unique<Clipd::Network::PeerDiscoveryDaemon>( args.discovery_port, args.verbose );
+    auto discoveryd = std::make_unique<Clipd::Network::PeerDiscoveryDaemon>( args.discovery_port,
+                                                                             zcert, args.verbose );
     clipd->registerOnTextUpdate(
         Clipd::Utils::Functor<void( const std::string& )>( [&args]( const std::string& update ) {
             if( args.verbose )
