@@ -4,6 +4,9 @@
 build/
 core
 
+cert
+*_secret
+
 # Prerequisites
 *.d
 
