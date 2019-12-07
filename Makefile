@@ -58,7 +58,7 @@ OBJ := $(SRC:%.cpp=$(BUILD_DIR)/%.o)
 TEST_SRC := $(shell find $(TEST_DIR) -name '*.cpp')
 TEST_OBJ := $(TEST_SRC:%.cpp=$(BUILD_DIR)/%.o)
 
-DEP := $(OBJ:%.o=%.d) $(TEST_OBJ:%.o=%.d) $(BUILD_DIR)/$(MAIN_ENTRY_POINT:%.cpp=%.d)
+DEP := $(SRC:%.cpp=%.d) $(TEST_SRC:%.cpp=%.d) $(BUILD_DIR)/$(MAIN_ENTRY_POINT:%.cpp=%.d)
 
 CXX := clang++
 LINK := clang++
@@ -118,8 +118,8 @@ all: $(TARGET)
 debug: CXXFLAGS += -ggdb3 -O0
 debug: all
 
-$(OBJ): zyre clip
-$(BUILD_DIR)/$(MAIN_ENTRY_POINT:%.cpp=%.o): zyre clip
+$(OBJ): $(ZYRE_LIBS) $(CLIP_LIB)
+$(BUILD_DIR)/$(MAIN_ENTRY_POINT:%.cpp=%.o): $(ZYRE_LIBS) $(CLIP_LIB)
 
 $(TARGET): $(OBJ) $(BUILD_DIR)/$(MAIN_ENTRY_POINT:%.cpp=%.o)
 	$(LINK) $^ -o $@ $(LINKFLAGS)
