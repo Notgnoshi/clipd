@@ -2,21 +2,15 @@
 
 namespace Clipd::App
 {
-void GenerateCertificate( fs::path cert )
+void GenerateCertificate( fs::path path )
 {
     zcert_t* certificate = zcert_new();
-    fs::path public_key = cert;
-    //! @note The generated public *must* have '_secret' appended in order for zcert to work
-    //! correctly.
-    public_key += "_secret";
 
     zcert_set_meta( certificate, "name", "Clipd" );
     zcert_set_meta( certificate, "url", "https://github.com/Notgnoshi/clipd" );
     zcert_set_meta( certificate, "email", "Austin.Gill@mines.sdsmt.edu" );
 
-    zcert_save_secret( certificate, cert.string().c_str() );
-    zcert_save_public( certificate, public_key.string().c_str() );
-
+    zcert_save( certificate, path.string().c_str() );
     zcert_destroy( &certificate );
 }
 
