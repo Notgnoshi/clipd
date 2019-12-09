@@ -148,7 +148,7 @@ $(TEST_TARGET): LINKFLAGS += -lgtest -lgmock
 $(TEST_TARGET): $(OBJ) $(TEST_OBJ)
 	$(LINK) $^ -o $@ $(LINKFLAGS)
 
-$(TEST_OBJ): libgtest libgmock
+$(TEST_OBJ): $(GTEST_LIB) $(GMOCK_LIB)
 
 ## Building project dependencies
 

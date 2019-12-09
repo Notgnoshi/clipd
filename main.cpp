@@ -60,10 +60,8 @@ int main( int argc, const char** argv )
     //! @note Creating an "Application" object is substantially complicated by the posix signal
     //! handling.
     auto clipd = std::make_unique<Clipd::Clipboard::ClipboardDaemon>();
-    auto discoveryd = std::make_unique<Clipd::Network::PeerDiscoveryDaemon>( args.discovery_port,
-                                                                             zcert,
-                                                                             args.session,
-                                                                             args.verbose );
+    auto discoveryd = std::make_unique<Clipd::Network::PeerDiscoveryDaemon>(
+        args.discovery_port, zcert, args.session, args.verbose );
     clipd->registerOnTextUpdate(
         Clipd::Utils::Functor<void( const std::string& )>( [&args]( const std::string& update ) {
             if( args.verbose )

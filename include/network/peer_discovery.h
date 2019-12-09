@@ -18,7 +18,8 @@ namespace Clipd::Network
 class PeerDiscoveryDaemon : public Utils::Daemon
 {
 public:
-    PeerDiscoveryDaemon( uint16_t discovery_port, zcert_t* certificate, const std::string& session,  bool verbose = false ) :
+    PeerDiscoveryDaemon( uint16_t discovery_port, zcert_t* certificate, const std::string& session,
+                         bool verbose = false ) :
         m_discovery_port( discovery_port ),
         m_verbose( verbose ),
         m_session( session ),
