@@ -2,6 +2,8 @@
 
 #include "network/message.h"
 
+#include <iostream>
+
 namespace Clipd::Network
 {
 PeerDiscoveryDaemon::PeerDiscoveryDaemon( uint16_t discovery_port, zcert_t* certificate,
@@ -26,7 +28,6 @@ PeerDiscoveryDaemon::PeerDiscoveryDaemon( uint16_t discovery_port, zcert_t* cert
         zyre_set_zcert( m_znode, m_zcert );
     }
 
-    //! @todo Does every node really have to join the GLOBAL group?
     zyre_join( m_znode, "GLOBAL" );
     zyre_join( m_znode, m_session.c_str() );
 }
@@ -121,6 +122,7 @@ void PeerDiscoveryDaemon::parseMessage( zmsg_t* msg )
             std::cout << header << std::endl;
             std::cout << payload << std::endl;
             std::cout << header << std::endl;
+            // Only listen for remote clipboard changes in our session.
             if( payload.groupname == m_session )
             {
                 m_remote_update_delegate( payload.message );

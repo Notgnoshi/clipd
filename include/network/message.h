@@ -9,14 +9,14 @@ namespace Clipd::Network::Messages
 {
 enum class MessageType
 {
-    Enter,
-    Exit,
-    Evasive,
-    Join,
-    Leave,
-    Whisper,
-    Shout,
-    Unknown,
+    Enter,   //!< A new peer has joined the network.
+    Exit,    //!< A peer has explicitly left the network.
+    Evasive, //!< A peer hasn't been heard from recently.
+    Join,    //!< A peer has joined a group.
+    Leave,   //!< A peer has left a group.
+    Whisper, //!< A peer has messaged a particular node.
+    Shout,   //!< A peer has broadcast a message to an entire group.
+    Unknown, //!< Something else has happend?!
 };
 
 struct Enter
@@ -117,11 +117,18 @@ struct Shout
     }
 };
 
+//! @brief Convert a zframe_t to a string.
 static std::string parseFrameStr( zframe_t* frame )
 {
     return std::string( reinterpret_cast<char*>( zframe_data( frame ) ), zframe_size( frame ) );
 }
 
+/**
+ * @brief Parse the first frame from the message to determine the Zyre message type.
+ *
+ * @param msg The message to parse as a Zyre message.
+ * @return The type of the Zyre message
+ */
 MessageType parseMessageType( zmsg_t* msg )
 {
     zframe_t* frame = zmsg_pop( msg );
