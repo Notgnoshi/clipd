@@ -25,6 +25,8 @@ struct CommandlineArgs_t
     bool generate_certificate = false; //!< Whether to generate a CURVE certificate.
     bool encrypt_traffic = false;      //!< Whether to encrypt traffic with a CURVE certificate.
     fs::path certificate;              //!< The path to the certificate public key.
+
+    std::string session = "global"; //!< The session ID for this peer to join.
 };
 
 /**

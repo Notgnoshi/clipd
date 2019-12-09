@@ -18,9 +18,10 @@ namespace Clipd::Network
 class PeerDiscoveryDaemon : public Utils::Daemon
 {
 public:
-    PeerDiscoveryDaemon( uint16_t discovery_port, zcert_t* certificate, bool verbose = false ) :
+    PeerDiscoveryDaemon( uint16_t discovery_port, zcert_t* certificate, const std::string& session,  bool verbose = false ) :
         m_discovery_port( discovery_port ),
         m_verbose( verbose ),
+        m_session( session ),
         m_zcert( certificate ),
         m_znode( zyre_new( nullptr ) )
     {
@@ -43,15 +44,14 @@ public:
         }
 
         zyre_join( m_znode, "GLOBAL" );
-        zyre_join( m_znode, "CLIPD" );
+        zyre_join( m_znode, m_session.c_str() );
     }
 
     ~PeerDiscoveryDaemon() {}
 
     void receiveLocalClipboardUpdate( const std::string& contents )
     {
-        //! @todo Consider encrypting TCP traffic.
-        zyre_shouts( m_znode, "CLIPD", "%s", contents.data() );
+        zyre_shouts( m_znode, m_session.c_str(), "%s", contents.data() );
     }
 
     void registerOnRemoteClipboardUpdate( Utils::Functor<void( const std::string& )> callback )
@@ -134,9 +134,7 @@ protected:
             case Messages::MessageType::Shout: {
                 Messages::Shout payload( msg );
                 std::cout << payload << std::endl;
-                //! @todo Use a session token as the group name. Enable one peer to be in multiple
-                //! sessions.
-                if( payload.groupname == "CLIPD" )
+                if( payload.groupname == m_session )
                 {
                     m_remote_update_delegate( payload.message );
                 }
@@ -150,7 +148,8 @@ protected:
 
 private:
     uint16_t m_discovery_port;
-    bool m_verbose;
+    const bool m_verbose;
+    const std::string& m_session;
     zcert_t* m_zcert;
     zyre_t* m_znode;
 
