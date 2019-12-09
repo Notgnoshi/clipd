@@ -27,7 +27,9 @@ CommandlineArgs_t ParseArgs( int argc, const char** argv )
                      "Encrypt traffic using the given certificate.",
                  ( clipp::option( "-g", "--generate" ).set( args.generate_certificate ) &
                    clipp::value( "certificate", cert_path ) ) %
-                     "Generate a certificate." );
+                     "Generate a certificate.",
+                 ( clipp::option( "-s", "--session" ) & clipp::value( "ID", args.session ) ) %
+                     "The session ID to join for this peer." );
 
     auto display_help = [&]() {
         std::cout
