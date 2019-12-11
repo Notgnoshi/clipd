@@ -10,8 +10,69 @@
 
 namespace Clipd::Network
 {
-//! @todo Discuss how Zyre implements its peer discovery and messaging.
-//! See http://hintjens.com/blog:32 and https://rfc.zeromq.org/spec:36/ZRE/
+/**
+ * @brief This Daemon manages peer-to-peer discovery and communication.
+ *
+ * @details The p2p discovery and communication is performed using the ZeroMq Realtime Exchange
+ * Protocol (ZRE). This class uses the Zyre implementation of the ZRE protocol, which is built
+ * on top of CZMQ, which is in turn built on top of libzmq.
+ *
+ * @par Peer Discovery
+ * Zyre implements two methods for peer discovery, only one of which is specified by the ZRE RFC.
+ * The ZRE protocol specifies the use of UDP broadcast beacons on port 5670 (assigned by IANA) to
+ * discover peers. Each beacon also contains an ephemeral TCP port that each peer listens for
+ * connections on.
+ *
+ * The discovery is based on UDP broadcasts, but actual messaging between peers is performed over
+ * TCP connections.
+ *
+ * Peer discovery can also be implemented using "gossiping". UDP broadcasts are limited to a peer's
+ * subnet, but gossip discovery is performed using an endpoint configured *a priori*. A peer sends
+ * a list of all connected hosts to any peer it "gossips" with. This is how you might define a p2p
+ * network across multiple subnets; put a "gateway" peer on the edge of each subnet, and configure
+ * them to gossip with the other gateway peers.
+ *
+ * However, the limitation of gossiping is that it is not *ad hoc*, the gossiping must be configured
+ * explicitly. A single Zyre node may only use one or the other discovery protocol, but there is no
+ * limitation that a single peer implement only one Zyre node.
+ *
+ * @note This application uses UDP broadcasts, not explicitly configured gossiping.
+ *
+ * @par Sessions
+ *
+ * Connected peers are arranged into groups to facilitate different messaging topologies.
+ * This application arranges peers into *sessions* to allow multiple users to sync multiple
+ * clipboards on the same network segment. Peers from different sessions will still discover each
+ * other, but they will only send and receive clipboard updates to peers in the same session.
+ *
+ * A peer's session can be configured through the application's `--session <session name>` argument.
+ * By default, a peer will join the "global" session.
+ *
+ * @par Peer-to-Peer Messaging
+ *
+ * The ZRE protocol defines the following message types:
+ *
+ * * HELLO. The HELLO command initiate a connection. Any messages received before a HELLO command
+ *   is received will be discarded.
+ * * WHISPER. The WHISPER command is used to message a *single* peer.
+ * * SHOUT. The SHOUT command is used to broadcast a message to all peers in a group.
+ * * JOIN. A node broadcasts a JOIN command to all its peers when it joins a group.
+ * * LEAVE. A node broadcasts a LEAVE command to all its peers when it leaves a group.
+ * * PING. A node can explicitly single out and PING a single peer that it hasn't heard a UDP
+ *   broadcast recently. If a peer does not respond to a PING, it should be treated as dead.
+ * * PING-OK. A node responds to a PING with a PING-OK command.
+ *
+ * The TCP messaging can be encrypted using a czmq zcert_t, but this requires building libzmq, czmq,
+ * and zyre with `--enable-drafts`, and defining the `ZYRE_BUILD_DRAFT_API` preprocessor definition.
+ * To encrypt the TCP traffic, generate a CURVE certificate by running the application with the
+ * `--generate <path/to/cert>` option. Afterwards, configure a peer to use encrypted traffic by
+ * passing the `--encrypt <path/to/cert>` commandline argument.
+ *
+ * @see https://github.com/zeromq/zyre for an implementation of the ZRE protocol.
+ * @see https://github.com/zeromq/czmq for "high level" C bindings for libzmq
+ * @see https://rfc.zeromq.org/spec:36/ZRE/ for the technical specification.
+ * @see http://hintjens.com/blog:32 for a descriptive blog post by the protocol author.
+ */
 class PeerDiscoveryDaemon : public Utils::Daemon
 {
 public:
