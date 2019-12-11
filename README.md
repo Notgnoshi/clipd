@@ -61,4 +61,4 @@ OPTIONS
 
 ## Network Architecture
 
-@todo Expound on the peer-to-peer discovery and message transmission.
+@see Clipd::Network::PeerDiscoveryDaemon for details on the peer discovery and messaging protocol.
