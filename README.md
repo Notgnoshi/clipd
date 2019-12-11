@@ -5,7 +5,7 @@ Peer-to-peer X11 clipboard synchronization.
 ## Dependencies
 
 Many of the dependencies are included as project submodules in `depends/`.
-The dependencies can be manually build by running `make depends`, or automatically as a part of building the main application with just `make`.
+**Thus, you must clone with `git clone --recurse-submodules https://github.com/Notgnoshi/clipd.git`**, or clone as usual, followed by `git submodule update --init --recursive`.
 
 Other non-vendored dependencies are
 
@@ -27,9 +27,17 @@ and the optional ones with
 sudo apt install doxygen graphviz clang-format clang-tidy
 ```
 
+The project is built by running `make`.
+This project *does* build on the Opp Lab machines, if the compiler version and dependencies preclude building locally.
+The project statically links against the vendored dependencies, but dynamically links the libraries installed through `apt`.
+
+The makefile places the built executable at `build/main`.
+
 ## Documentation
 
 Run `make docs` and `make viewdocs` to build and open the developer documentation.
+
+You may also run `make help` to display all of the (documented) make targets.
 
 ## Usage
 
