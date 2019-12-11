@@ -84,7 +84,8 @@ void PeerDiscoveryDaemon::parseMessage( zmsg_t* msg )
     const Messages::MessageType type = Messages::parseMessageType( msg );
     switch( type )
     {
-        case Messages::MessageType::Enter: {
+        case Messages::MessageType::Enter:
+        {
             //! @todo Associate a peer's UUID with a host IP.
             //! That way, when multiple nodes are running on the same host, less bad things
             //! happen.
@@ -94,30 +95,36 @@ void PeerDiscoveryDaemon::parseMessage( zmsg_t* msg )
             std::cout << header << std::endl;
             break;
         }
-        case Messages::MessageType::Exit: {
+        case Messages::MessageType::Exit:
+        {
             const Messages::Exit payload( msg );
             std::cout << header << std::endl;
             std::cout << payload << std::endl;
             std::cout << header << std::endl;
             break;
         }
-        case Messages::MessageType::Evasive: {
+        case Messages::MessageType::Evasive:
+        {
             const Messages::Evasive payload( msg );
             break;
         }
-        case Messages::MessageType::Join: {
+        case Messages::MessageType::Join:
+        {
             const Messages::Join payload( msg );
             break;
         }
-        case Messages::MessageType::Leave: {
+        case Messages::MessageType::Leave:
+        {
             const Messages::Leave payload( msg );
             break;
         }
-        case Messages::MessageType::Whisper: {
+        case Messages::MessageType::Whisper:
+        {
             const Messages::Whisper payload( msg );
             break;
         }
-        case Messages::MessageType::Shout: {
+        case Messages::MessageType::Shout:
+        {
             const Messages::Shout payload( msg );
             std::cout << header << std::endl;
             std::cout << payload << std::endl;
@@ -129,7 +136,8 @@ void PeerDiscoveryDaemon::parseMessage( zmsg_t* msg )
             }
             break;
         }
-        case Messages::MessageType::Unknown: {
+        case Messages::MessageType::Unknown:
+        {
             break;
         }
     }
